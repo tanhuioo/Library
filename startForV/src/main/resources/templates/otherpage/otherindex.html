@@ -1,0 +1,100 @@
+
+<!--内容-->
+<div class="row-content am-cf">
+    <div class="row">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+            <div class="widget am-cf widget-body-lg am-animation-slide-left">
+                <div class="container-fluid am-cf">
+                    <div class="layui-carousel" id="test1">
+                        <div carousel-item>
+                            <img src="/images/05.png">
+                            <img src="/images/06.png">
+                            <img src="/images/07.png">
+                            <img src="/images/08.png">
+                            <img src="/images/11.png">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-6">
+            <div class="widget am-cf widget-body-lg am-animation-slide-left">
+                <div class="container-fluid am-cf">
+                    <div class="layui-carousel" id="test2">
+                        <div carousel-item>
+                            <img src="/images/05.png">
+                            <img src="/images/06.png">
+                            <img src="/images/07.png">
+                            <img src="/images/08.png">
+                            <img src="/images/11.png">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-6">
+            <div class="widget am-cf widget-body-lg am-animation-slide-left">
+                <div class="container-fluid am-cf">
+                    <div class="layui-carousel" id="test3">
+                        <div carousel-item>
+                            <img src="/images/05.png">
+                            <img src="/images/06.png">
+                            <img src="/images/07.png">
+                            <img src="/images/08.png">
+                            <img src="/images/11.png">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12" >
+            <div class="widget am-cf widget-body-lg am-animation-slide-left" >
+                <div class="container-fluid am-cf" >
+                    <div class="am-u-sm-12 am-u-md-12 am-u-lg-6" >
+                        新闻通知
+                        <ul class="am-list am-list-static">
+                            <li>...</li>
+                        </ul>
+                    </div>
+                    <div class="am-u-sm-12 am-u-md-12 am-u-lg-6" >
+                        知识推送
+                        <ul class="am-list am-list-static">
+                            <li>...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use('carousel', function(){
+        var carousel = layui.carousel;
+        //建造实例
+        carousel.render({
+            elem: '#test1'
+            ,width: '100%' //设置容器宽度
+            ,arrow: 'always' //始终显示箭头
+            //,anim: 'updown' //切换动画方式
+        });
+        carousel.render({
+            elem: '#test2'
+            ,width: '100%' //设置容器宽度
+            ,arrow: 'none' //始终显示箭头
+            ,anim: 'fade'
+            ,indicator:'none'
+            //切换动画方式
+        });
+        carousel.render({
+            elem: '#test3'
+            ,width: '100%' //设置容器宽度
+            ,arrow: 'none' //始终显示箭头
+            ,anim: 'fade'
+            ,indicator:'none'
+            //切换动画方式
+        });
+    });
+</script>

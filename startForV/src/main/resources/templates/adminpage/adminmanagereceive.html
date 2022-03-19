@@ -1,0 +1,157 @@
+<style>
+    ::-webkit-scrollbar {/*滚动条整体样式*/
+        width: 4px;     /*高宽分别对应横竖滚动条的尺寸*/
+        height: 4px;
+    }
+    ::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+        border-radius: 5px;
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        background: rgba(60, 133, 250, 0.56);
+    }
+    ::-webkit-scrollbar-track {/*滚动条里面轨道*/
+        -webkit-box-shadow: inset 0 0 5px rgba(142, 198, 237, 0.44);
+        border-radius: 0;
+        background: rgba(0, 0, 0, 0.02);
+    }
+</style>
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9" >
+            <div class="page-header-heading"><span class="am-icon-mail-forward sidebar-nav-link-logo"></span>  接收信息<small>展示所有</small></div>
+            <p class="page-header-description">接收所有人给你发的信息，也许以后会加入黑名单的功能，但是也可能不加</p>
+            <p class="page-header-description">部分已读和可读，全部显示</p>
+        </div>
+    </div>
+</div>
+
+<div class="row-content am-cf">
+    <div class="widget   am-animation-slide-left" id="receivecontent">
+            <div class="am-scrollable-horizontal ">
+                <div id="allmsg" >
+<!--                    <article class="am-comment">-->
+<!--                        <a href="#link-to-user-home">-->
+<!--                            <img src="/images/headinit.png" alt="" class="am-comment-avatar" width="48" height="48"/>-->
+<!--                        </a>-->
+
+<!--                        <div class="am-comment-main">-->
+<!--                            <header class="am-comment-hd">-->
+<!--                                &lt;!&ndash;<h3 class="am-comment-title">评论标题</h3>&ndash;&gt;-->
+<!--                                <div class="am-comment-meta">-->
+<!--                                    <a href="#link-to-user" class="am-comment-author">某人</a>-->
+<!--                                    评论于 <time datetime="2013-07-27T04:54:29-07:00" title="2013年7月27日 下午7:54 格林尼治标准时间+0800">2014-7-12 15:30</time>-->
+<!--                                </div>-->
+<!--                            </header>-->
+
+<!--                            <div class="am-comment-bd">-->
+<!--                                ...-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </article>-->
+                </div>
+            </div>
+    </div>
+</div>
+
+
+<script>
+//展现出所有的信息
+$(function () {
+    showAllMsg()
+})
+    function showAllMsg(){
+    console.log("now receiver user"+$('#nowname').html())
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/admin/showAllMsg",
+            dataType: "json",
+            data: {
+                receiver: $('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (data) {
+                    var str="";
+                    if(data.length==0){
+                        $('#receivecontent').html("<span style='text-align: center;font-size: 50px'>你真惨，都没人和你交互～哈哈哈哈</span>")
+                    }
+                    if(data.length>=6){
+                        $('#allmsg').attr("style","height:580px;overflow:auto")
+                    }
+                    for (var i=0;i<data.length;i++){
+                        //修改更改过的头像
+                        $.ajax({
+                                type: "POST",                           //通过POST方式上传请求
+                                url: "/admin/upmsgheadimg",
+                                dataType: "json",
+                                data: {
+                                    sender: data[i].sender
+                                },
+                                beforeSend: function (xhr) {
+                                    xhr.setRequestHeader(header, token);
+                                },
+                                success: function (data) {
+                                }
+                            }
+                        )
+
+
+                        var sendheadimg=data[i].senderheadimg;
+
+                        if(data[i].isread==1){
+                            console.log("isread")
+                        str+="<article  class=\"am-comment am-comment-highlight\"  style='margin-top: 10px' onclick='shownowmsgallmsg("+data[i].id+"," +
+                                                                                                                                        "\""+data[i].sender+"\"," +
+                                                                                                                                        "\""+data[i].message+"\")'" +
+                                                                                                                                         ">\n" +
+                            "                        <a href=\"#link-to-user-home\">\n" +
+                            "                            <img src=\"../admin/getsendrImg.action?nowheadimg="+sendheadimg+"\" class='headimg am-comment-avatar'>\n" +
+                            "                        </a>\n" +
+                            "                        <div class=\"am-comment-main\" >\n" +
+                            "                            <header class=\"am-comment-hd\">\n" +
+                            "                                <!--<h3 class=\"am-comment-title\">评论标题</h3>-->\n" +
+                            "                                <div class=\"am-comment-meta\">\n" +
+                            "                                    发送者：<a href=\"#link-to-user\" class=\"am-comment-author\">"+data[i].sender+"</a>\n" +
+                            "                                     <span style='float: right'>发送时间："+data[i].sendtime+" </span>\n" +
+                            "                                </div>\n" +
+                            "                            </header>\n" +
+                            "                            <div class=\"am-comment-bd\">\n" +
+                            "                                "+data[i].topic+"\n" +
+                            "                            </div>\n" +
+                            "                        </div>\n" +
+                            "                    </article> "
+
+                    }else{
+                            str+="<article  class=\"am-comment \"  style='margin-top: 10px'  onclick='shownowmsgallmsg("+data[i].id+"," +
+                                                                                                                        "\""+data[i].sender+"\"," +
+                                                                                                                        "\""+data[i].message+"\"" +
+                                                                                                                        ")'>\n" +
+                                "                        <a href=\"#link-to-user-home\">\n" +
+                                "                            <img src=\"../admin/getsendrImg.action?nowheadimg="+sendheadimg+"\" class='headimg am-comment-avatar'>\n" +
+                                "                        </a>\n" +
+                                "                        <div class=\"am-comment-main\" >\n" +
+                                "                            <header class=\"am-comment-hd\">\n" +
+                                "                                <!--<h3 class=\"am-comment-title\">评论标题</h3>-->\n" +
+                                "                                <div class=\"am-comment-meta\">\n" +
+                                "                                    发送者：<a href=\"#link-to-user\" class=\"am-comment-author\">"+data[i].sender+"</a>\n" +
+                                "                                     <span style='float: right'>发送时间："+data[i].sendtime+" </span>\n" +
+                                "                                </div>\n" +
+                                "                            </header>\n" +
+                                "                            <div class=\"am-comment-bd\">\n" +
+                                "                                "+data[i].topic+"\n" +
+                                "                            </div>\n" +
+                                "                        </div>\n" +
+                                "                    </article> "
+                        }
+               }
+                    $('#allmsg').html(str)
+
+            }
+        })
+    }
+    //打开这个信息的具体内容
+    function shownowmsgallmsg(id,sender,msg) {
+
+        shownowunreadmsg(id,sender,msg)
+    }
+</script>

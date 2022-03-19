@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bysj.qiu.dao.ShowShopItemDao">
+<!--    显示所有的果蔬-->
+    <select id="selallForV" resultType="com.bysj.qiu.pojo.ShopItem">
+        select * from tb_shop_item
+        where
+        1=1
+        <if test="type !='' and type !=null ">
+           and type=#{type}
+        </if>
+        <if test="name !='' and name !=null ">
+            and name LIKE concat('%',#{name},'%')
+        </if>
+    </select>
+<!-- 显示当前这个果蔬的总购买数量或者其他的单条信息-->
+    <select id="selOneOfForV" resultType="com.bysj.qiu.pojo.ShopItem">
+        select * from tb_shop_item where name=#{name}
+    </select>
+    <!--    查询出所有商品的类别作为下拉列表-->
+    <select id="selAllShopItemType" resultType="com.bysj.qiu.pojo.ShopItemType">
+        select * from tb_shopitem_type
+    </select>
+</mapper>

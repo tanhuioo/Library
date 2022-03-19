@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bysj.qiu.dao.DealShopCarDao">
+
+<!--    增加购物信息到购物车列表-->
+    <insert id="addToShopCar">
+        insert into tb_shop_shopcar(shopcarname,shopcarprices,shopcarcount,needmoney,shopcarimg,putter,stockcount,sellcount) values(#{shopcarname},#{shopcarprices},#{shopcarcount},#{needmoney},#{shopcarimg},#{putter},#{stockcount},#{sellcount})
+    </insert>
+<!--    查询出购物信息列表-->
+    <select id="selAllShopCar" resultType="com.bysj.qiu.pojo.ShopCar">
+        select * from tb_shop_shopcar where putter=#{putter}
+    </select>
+<!--    批量增加订单：购物车到订单列表-->
+    <insert id="morAddToOrder" parameterType="java.util.List">
+        insert into tb_shop_order(buyer,buyshopitemname,address,tellphone,transfername,iscomment,isdone,consume,onecount,shopimg)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.buyer},#{item.buyshopitemname},#{item.address},#{item.tellphone},#{item.transfername},1,1,#{item.consume},#{item.onecount},#{item.shopimg})
+        </foreach>
+    </insert>
+<!--    批量增加账单-->
+    <insert id="morAddToBill" parameterType="java.util.List">
+        insert into tb_bil(user,flowmoney,whatdoing,isbuyoradd)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.user},#{item.flowmoney},#{item.whatdoing},#{item.isbuyoradd})
+        </foreach>
+    </insert>
+
+<!--    批量删除-->
+    <delete id="delMorShopCar" parameterType="java.util.List">
+        delete from tb_shop_shopcar
+        where id in
+        <foreach collection="list" item="id" open="(" close=")" index="index" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+<!--    批量更新商品销量与库存-->
+    <update id="upMoreForVCount" parameterType="java.util.List">
+        update tb_shop_item set
+        <foreach collection="list" item="item" index="index" separator=",">
+             sellcount=#{item.sellcount},stockcount=#{item.stockcount}
+        </foreach>
+          where
+        <foreach collection="list" item="item2" index="index" separator=",">
+            name=#{item2.name}
+        </foreach>
+    </update>
+    <!--    更新余额与总购买次数-->
+    <update id="upBalance" >
+        update tb_secret_user set balance=#{balance},buynum=#{buynum} where user=#{ buyuser}
+    </update>
+</mapper>

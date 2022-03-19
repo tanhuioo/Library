@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bysj.qiu.dao.DealExpressInfoDao">
+<!--    查询出所有快递信息-->
+    <select id="selExpressInfo" resultType="com.bysj.qiu.pojo.ExpressInfo">
+        select * from tb_express_info where buyer=#{buyer}
+    </select>
+<!--   增加快递快递信息-->
+    <insert id="insertExpressInfo">
+        insert into tb_express_info(transfername,tellphone,address,buyer) values (#{transfername},#{tellphone},#{address},#{buyer})
+    </insert>
+<!--    修改快递信息-->
+    <update id="upExpressInfo">
+        update  tb_express_info set transfername=#{transfername},tellphone=#{tellphone},address=#{address} where id=#{id}
+    </update>
+<!--    删除快递信息-->
+    <delete id="delExpressInfo">
+        delete from tb_express_info where id=#{id}
+    </delete>
+</mapper>

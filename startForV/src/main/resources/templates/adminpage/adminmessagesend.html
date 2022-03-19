@@ -1,0 +1,175 @@
+<!--这是子字页面，在父页面adminfirst里用load()方法加载进内容区域的-->
+<!--此子页面用于展现信息发送-->
+
+<!--头-->
+<style>
+
+    #recshowerror {
+        color: red;
+    }
+    #topicshowerror{
+        color: red;
+    }
+    #senmsgshowerror{
+        color: red;
+    }
+</style>
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9" >
+            <div class="page-header-heading"><span class="am-icon-mail-reply sidebar-nav-link-logo"></span> 信息发送 <small>开始发送信息</small></div>
+            <p class="page-header-description">目前你可以给任何人发送信息</p>
+            <p class="page-header-description">操作，基于数据库的，非套接字协议</p>
+        </div>
+    </div>
+</div>
+
+<!--内容-->
+<<div class="row-content am-cf">
+    <div class="widget   am-animation-slide-left" >
+        <div class="am-scrollable-horizontal ">
+        <h1 >你好:<span id="sendname"></span>
+            ，发送你的信息
+        </h1>
+            <div class="am-input-group am-input-group-primary" id="receiverlogleve">
+                <span class="am-input-group-label"><i class="am-icon-user"></i></span>
+                <input type="text" class="am-form-field" placeholder="你要发给谁" id="receiver">
+            </div><p id="recshowerror"></p>
+
+        <div class="am-input-group am-input-group-primary" style="margin-top: 2%" id="topiclogleve">
+            <span class="am-input-group-label"><i class="am-icon-italic"></i></span>
+            <input type="text" class="am-form-field" placeholder="输入主题" id="topic">
+        </div><p id="topicshowerror"></p>
+        <div class="am-input-group am-input-group-success" style="margin-top: 2%" id="sendmsglogleve">
+            <span class="am-input-group-label"><i class="am-icon-plane"></i></span>
+            <textarea id="sendermessage" name="message" class="am-form-field" placeholder="Your Message to Us" style="width: 100%;height: 200px"></textarea>
+        </div><p id="senmsgshowerror"></p>
+
+        <div class="am-btn-group" style="margin-top: 2%;float: right">
+            <button onclick="submitmsgtodatabase()"  class="am-btn am-btn-primary am-round">发送</button>
+            <button onclick="clearallchatsendbefore()"  class="am-btn am-btn-primary am-round">清空全部</button>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+// 获得当前用户
+$('#sendname').html($('#nowname').html())
+//清空所有发送区域的信息
+    function clearallchatsendbefore(){
+        $('#receiver').val('')
+        $('#topic').val('')
+        $('#sendermessage').val('')
+    }
+/////////////////////////////////新方式判断：鼠标焦点的得到与失去/////////////////////////////////////////////////
+            $('#receiver').focus(function () {
+                $('#receiverlogleve').removeClass('am-input-group-danger')
+                $('#recshowerror').html("")
+            })
+            $('#topic').focus(function () {
+                $('#topiclogleve').removeClass('am-input-group-danger')
+                $('#topicshowerror').html("")
+            })
+            $('#sendermessage').focus(function () {
+                $('#sendmsglogleve').removeClass('am-input-group-danger')
+                $('#senmsgshowerror').html("")
+            })
+
+            $('#receiver').blur(function () {
+                if($('#receiver').val()==''){
+                    $('#receiverlogleve').addClass('am-input-group-danger')
+                    $('#recshowerror').html("接收者不能为空")
+                }else {
+                    $('#receiverlogleve').removeClass('am-input-group-danger')
+                    $('#recshowerror').html("")
+                }
+            })
+            $('#topic').blur(function () {
+                if($('#topic').val()==''){
+                    $('#topiclogleve').addClass('am-input-group-danger')
+                    $('#topicshowerror').html("主题不能为空")
+                }else{
+                    $('#topiclogleve').removeClass('am-input-group-danger')
+                    $('#topicshowerror').html("")
+                }
+            })
+            $('#sendermessage').blur(function () {
+                if($('#sendermessage').val()=='') {
+                    $('#sendmsglogleve').addClass('am-input-group-danger')
+                    $('#senmsgshowerror').html("要发送的消息不能为空")
+                }else{
+                    $('#sendmsglogleve').removeClass('am-input-group-danger')
+                    $('#senmsgshowerror').html("")
+                }
+            })
+//发送信息
+    function submitmsgtodatabase() {
+        if($('#sendname').html() ==  $('#receiver').val()){
+            $('#alert').html('不能发给自己')
+            $('#startalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                onConfirm: function () {
+                },
+            })
+        }else {
+            $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/admin/booleanotheruserexit",
+                    dataType: "text",
+                    data: {
+                        updauser: $('#receiver').val(),
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    }, success: function (data) {
+                        console.log(data)
+                            if($('#receiver').val()!=='' && $('#topic').val()!=='' && $('#sendermessage').val()!==''){
+                                if(data=='exit'){
+                                var sender = $('#sendname').html();
+                                $.ajax({
+                                    type: "POST",                           //通过POST方式上传请求
+                                    url: "/admin/sendMsg",
+                                    dataType: "json",
+                                    data: {
+                                        sender: sender,
+                                        receiver: $('#receiver').val(),
+                                        topic: $('#topic').val(),
+                                        message:  $('#sendermessage').val()
+                                    },
+                                    beforeSend: function (xhr) {
+                                        xhr.setRequestHeader(header, token);
+                                    }, success: function (data) {
+                                        $('#alert').html('发送成功')
+                                        $('#startalert').modal({
+                                            relatedTarget: this,
+                                            closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                                            onConfirm: function () {
+                                            },
+                                        })
+                                        clearallchatsendbefore()
+                                    }
+                                })
+                                }else{
+                                    $('#alert').html($('#receiver').val()+'这个用户不存在，请输入正确的用户')
+                                    $('#startalert').modal({
+                                        relatedTarget: this,
+                                        closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                                        onConfirm: function () {
+                                        },
+                                    })
+                                }
+                        }else{
+                                $('#receiverlogleve').addClass('am-input-group-danger')
+                                $('#recshowerror').html("接收者不能为空")
+                                $('#topiclogleve').addClass('am-input-group-danger')
+                                $('#topicshowerror').html("主题不能为空")
+                                $('#sendmsglogleve').addClass('am-input-group-danger')
+                                $('#senmsgshowerror').html("要发送的消息不能为空")
+                            }
+                    }
+            })
+        }
+
+    }
+</script>

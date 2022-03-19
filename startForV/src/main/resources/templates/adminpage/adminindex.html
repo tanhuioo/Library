@@ -1,0 +1,191 @@
+
+<!--内容-->
+<!--头-->
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9">
+            <div class="page-header-heading"><span class="am-icon-home sidebar-nav-link-logo"></span>首页</div>
+            <p class="page-header-description">echarts支持</p>
+            <p class="page-header-description">用图表的方式统计各种方式</p>
+        </div>
+    </div>
+</div>
+
+<div class="row-content am-cf">
+    <div class="am-u-sm-12 am-u-md-12 am-u-lg-6">
+        <div class="widget am-cf widget-body-lg am-animation-slide-left">
+            <div class="container-fluid am-cf">
+                <div id="seltopfirstforvcharts" style="width: 100%;height:400px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="am-u-sm-12 am-u-md-12 am-u-lg-6">
+        <div class="widget am-cf widget-body-lg am-animation-slide-left">
+            <div class="container-fluid am-cf">
+                <div id="sellastmonthproportion" style="width: 100%;height:400px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+        <div class="widget am-cf widget-body-lg am-animation-slide-left">
+            <div class="container-fluid am-cf">
+                <div id="selfivemonthconsume" style="width: 100%;height:400px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var dataproportionarr
+    var dataproportionname
+    var topsixforvconsume=[];
+    var topsixforvname=[];
+    var fivemonthdate=[]
+    var fivemonthconsume=[]
+    //前六销售排行
+    function selTopFirstForVCharts(data) {
+        var myChart = echarts.init(document.getElementById('seltopfirstforvcharts'));
+
+        var option = {
+            title: {
+                text: '前六销售排名的果蔬'
+            },
+            tooltip: {},
+            legend: {
+                data:['销量']
+            },
+            xAxis: {
+                data: topsixforvname,
+            },
+            yAxis: {},
+            series: [{
+                name: '销量',
+                type: 'bar',
+                color: '#5A89BC',
+                data: topsixforvconsume
+
+            }]
+        };
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+    }
+    //前六销售排行数据拼接
+    $(function () {
+        $.get("/adminshoweacharts/seltopfirstforfcharts",function (data) {
+            for(var i=0;i<data.length;i++){
+                topsixforvconsume.push(data[i].count);
+                topsixforvname.push(data[i].name)
+            }
+            selTopFirstForVCharts(data)
+        })
+    })
+    //前五个月消费数据趋势图
+    function selfivemonthconsume() {
+        var myChart = echarts.init(document.getElementById('selfivemonthconsume'));
+       var option = {
+           title: {
+               text: '最近五个月的销售趋势'
+           },
+           tooltip : {
+               trigger: 'axis',
+               axisPointer: {
+                   type: 'cross',
+                   label: {
+                       backgroundColor: '#6a7985'
+                   }
+               }
+           },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: fivemonthdate
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: fivemonthconsume,
+                type: 'line',
+                areaStyle: {}
+            }]
+        };
+        myChart.setOption(option);
+    }
+    //最近五个月销量数据拼接
+    $(function () {
+        $.get("/adminshoweacharts/selfivemonthconsume",function (data) {
+            for(var i=0;i<data.length;i++){
+                fivemonthdate.push(data[i].fivemonth);
+                fivemonthconsume.push(data[i].sumconsume)
+            }
+            selfivemonthconsume()
+        })
+    })
+
+
+    //上一个月与前五个月的占比数据拼接
+    $(function () {
+        dataproportionarr=[]
+        dataproportionname=[]
+        $.get("/adminshoweacharts/sellastmonthconsume",function (data) {
+                var dataproportionob={}
+                dataproportionob.value=data
+                dataproportionob.name="上一个月销售额"
+                dataproportionarr.push(dataproportionob)
+                dataproportionname.push("上一个月销售额")
+            $.get("/adminshoweacharts/getfivemonthallconsume",function (data) {
+                var dataproportionob={}
+                dataproportionob.value=data
+                dataproportionob.name="五个月销售额"
+                dataproportionarr.push(dataproportionob)
+                dataproportionname.push("五个月销售额")
+                console.log(dataproportionname)
+                sellastmonthproportion()
+            })
+
+        })
+    })
+    //上一个月与前五个月的占比显示
+    function sellastmonthproportion() {
+        var myChart = echarts.init(document.getElementById('sellastmonthproportion'));
+        var option = {
+
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b}: {c} ({d}%)"
+            },
+            legend: {
+                orient: 'vertical',
+                x: 'left',
+                data:dataproportionname
+            },
+            series: [
+                {
+                    name:'销量占比',
+                    type:'pie',
+                    radius: ['50%', '70%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        normal: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            show: true,
+                            textStyle: {
+                                fontSize: '30',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+                    data:dataproportionarr
+                }
+            ]
+        };
+        myChart.setOption(option);
+    }
+</script>

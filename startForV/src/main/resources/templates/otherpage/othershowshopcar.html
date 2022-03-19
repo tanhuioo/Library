@@ -1,0 +1,419 @@
+<style>
+
+    form{border: 1px solid #ccc;padding: 20px;width: 300px;margin: 30px auto;}
+
+    .wrapper{margin-bottom: 10px;}
+
+    .box{display: inline-block;position: relative;width: 40px;height: 40px;border: 4px solid orange;border-radius: 50px}
+
+    .box input{position: absolute;top: 0;left: 0;top: -3px;left: -4px;width: 21px;height: 21px; opacity: 0;cursor: pointer;z-index: 5; }
+
+    .box span{position: absolute;top: 1px; right: 6px;font-size: 36px;font-weight: bold;font-family: Arial; -webkit-transform: rotate(18deg); -moz-transform: rotate(18deg); -ms-transform: rotate(18deg); -o-transform: rotate(18deg); transform: rotate(18deg);color: orange;}
+
+    input[type="checkbox"]+span{opacity: 0;}
+
+    input[type="checkbox"]:checked+span{opacity: 1;}
+
+</style>
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-12">
+            <div class="page-header-heading"><span class="am-icon-home sidebar-nav-link-logo"></span>购物车</div>
+            <p class="page-header-description">放入购物车的商品，方便下次购买</p>
+            <button onclick="upmoreshopitem()">text</button>
+        </div>
+    </div>
+</div>
+
+<div class="row-content am-cf">
+    <div class="widget am-cf widget-body-lg am-animation-slide-left" >
+        <div class="row" >
+            <div class="am-u-sm-12 am-u-md-6 am-u-lg-6">
+                <div style="border: 5px solid #F37B1D;border-radius: 15px;padding: 1%" >
+                    <div class="am-input-group">
+                        <span class="am-input-group-label"><i class="am-icon-user"></i></span>
+                        <input type="text" id="inshopcarbuyusername" class="am-form-field" placeholder="输入收件人昵称">
+                    </div>
+                    <div class="am-input-group">
+                        <span class="am-input-group-label"><i class="am-icon-phone"></i></span>
+                        <input type="text" id="inshopcarbuyphone" class="am-form-field" placeholder="输入收件人手机号">
+                    </div>
+                    <textarea id="inshopcaraddress" class="am-form-field" style="height: 80px" placeholder="输入收件人的收货地址">
+
+                    </textarea>
+
+                    <div id="doc-dropdown-justify-js" style="width: 30%">
+                        <div class="am-dropdown" id="doc-dropdown-js">
+                            <a class="am-dropdown-toggle">快速选择快递信息 <span class="am-icon-caret-down"></span></a>
+                            <div class="am-dropdown-content tpl-dropdown-content" id="shopcarexpressselected">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="am-u-sm-12 am-u-md-6 am-u-lg-6"  >
+                <div style="border: 5px solid #F37B1D;border-radius: 15px;padding: 1%;" >
+                    <div class="widget widget-purple am-cf" style="margin: 0px;background-color:#F37B1D " >
+                        <div class="widget-statistic-header">
+                            <div  style="font-size: 35px">你的购物车里共有</div>
+                        </div>
+                        <div class="widget-statistic-body">
+                            <div class="widget-statistic-value">
+                                <span id="shophavecount"></span>个商品
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid am-cf" style="border: 5px solid #F37B1D;border-radius: 15px;height: 640px;overflow: auto;margin-top: 1%;position: relative" >
+            <div class="am-g am-animation-slide-top"  id="shopcarlist">
+
+            </div>
+            <div style="position: absolute ;bottom: 1%;right: 1%">
+                <span ></span><button  class="am-btn am-btn-danger am-round" onclick="moraddorder()" id="allmoney">购买</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var mybalance
+    var allbuycount
+    var allmoney
+
+        $('#inshopcaraddress').html("")
+    //快速选择地址下拉
+    $(function() {
+        $('#doc-dropdown-js').dropdown({justify: '#doc-dropdown-justify-js'});
+    });
+    //快速选择地址
+    $(function () {
+        showexpressinfo()
+    })
+    function showexpressinfo() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/otherexpress/selallexpressinfo",
+            data: {
+                buyer:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var choise=""
+                for(var i=0;i<data.length;i++){
+                    choise +="<li class=\"tpl-dropdown-menu-messages\" onclick='addininputexpressinfo(" +
+                        "\"" + data[i].tellphone + "\"," +
+                        "\"" + data[i].address + "\"," +
+                        "\"" + data[i].transfername + "\")'>\n" +
+                        "                                <a href=\"javascript:;\" class=\"am-cf\">\n" +
+                        "                                    <div class=\"menu-messages-content\" style='text-align: center;color: #878787'>\n" +
+                        "                                        <div class=\"menu-messages-content-title\">\n" +
+                        "                                            <span id=\"transfername\">" + data[i].transfername + "</span>\n" +
+                        "                                        </div>\n" +
+                        "                                        <div class=\"am-text-truncate\" id=\"transaddress\">" + data[i].address + "</div>\n" +
+                        "                                        <div id=\"tellphone\">" + data[i].tellphone + "</div>\n" +
+                        "                                    </div>\n" +
+                        "                                </a>\n" +
+                        "                            </li>"
+                }
+                $('#shopcarexpressselected').html(choise)
+            }
+        })
+    }
+    //点击选择地址
+    function addininputexpressinfo(tellphone,address,transfername) {
+        $('#inshopcarbuyphone').val(tellphone)
+        $('#inshopcarbuyusername').val(transfername)
+        $('#inshopcaraddress').val(address)
+    }
+    //加载出购物车列表
+    $(function () {
+        showshopcaralllist()
+    })
+    function showshopcaralllist(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othershopcar/showallshopcar",
+            data: {
+                putter:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=""
+                for(var i=0;i<data.length;i++) {
+                    console.log(data)
+                    $('#shophavecount').html(data.length)
+                    str += "       <div class=\"col-lg-6\"> " +
+                        "               <div style=\"height: 20%;background-color:#F1F3F4 ;border-radius: 5px;margin-bottom: 2%;position: relative\" >\n" +
+                        "                <div  style=\"background-color:#E9ECF3;border:4px solid #E9ECF3 ;margin-left: 1%;width: 98%;height: 100%; border-radius: 10px;position: relative\" >\n" +
+                        "                    <img src=\"../other/getsendrImg.action?nowforvimg=" + data[i].shopcarimg + "\" width=\"8%\" height=\"100%\" style=\"float: left; border-bottom-left-radius: 10px;border-top-left-radius: 10px\">\n" +
+                        "                    <div style='margin-left: 10%;font-size: 40px'>" + data[i].shopcarname + "</div>\n" +
+                        "                    <div style='position: absolute;right: 2%;top: 20%;font-size: 40px'>￥" + data[i].needmoney + "</div>\n" +
+                        "                    <div style='margin-left: 10%;font-size: 30px'>共" + data[i].shopcarcount + "斤</div>\n" +
+                        "                    <div style='position: absolute;right: 2%;top: 75%;font-size: 20px'>￥" + data[i].shopcarprices + "/斤</div>\n" +
+                        "                    <div style='position: absolute;right: 2%;top: 2%'>" + data[i].putinshopcartime + "</div>\n" +
+                                        "    <div class=\"wrapper\" >\n" +
+                                        "        <div class=\"box\"> " +
+                                        "                 <div onclick='whencheck(" +
+                                                             "" + i + "," +
+                                                            "" + data[i].needmoney + "," +
+                                                            "" + data[i].stockcount + "," +
+                                                             "" + data[i].sellcount + "," +
+                                                             "" + data[i].shopcarcount + "," +
+                                                             "\"" + data[i].putter + "\"," +
+                                                            "\"" + data[i].shopcarimg + "\"," +
+                                                            "\"" + data[i].shopcarname + "\"," +
+                                                            "" +
+                                        "                    )'><input type='checkbox' name='oldCheckbox' value="+data[i].id+" /><span>√</span></div>  " +
+                                        "        </div>             " +
+                                        "     </div>      " +
+                                        "</div>\n" +
+                        "            </div>" +
+                        "</div>  "
+
+
+                }
+               $('#shopcarlist').html(str)
+            }
+        })
+    }
+    var obarr=[]
+    var moneyid =[]
+    var billarr=[]
+    var shopitemarr=[]
+    //当选择的时候
+    function whencheck(i,needmoney,stockcount,sellcount,shopcarcount,putter,shopcarimg,shopcarname) {
+        var arry = document.getElementsByName("oldCheckbox");
+        //批量增加订单对象填充
+        var ob={}
+        ob.transfername=$('#inshopcarbuyusername').val()
+        ob.tellphone=$('#inshopcarbuyphone').val()
+        ob.address=$('#inshopcaraddress').val()
+        ob.buyer=putter
+        ob.consume=needmoney
+        ob.onecount=shopcarcount
+        ob.shopimg=shopcarimg
+        ob.buyshopitemname=shopcarname
+            if (arry[i].checked){
+                obarr.push(ob)
+            }else{
+                obarr.pop(ob)
+            }
+        //计算出一共多少钱
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othershopcar/moneycalclation",
+            contentType: "application/json;charset=UTF-8",//如果传输对象到后台，就需要加这个，以及下方的转换json格式
+            data: JSON.stringify(obarr),
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                allmoney=data
+                $('#allmoney').html("共计:"+data+"元")
+            }
+        })
+        ///////////////////////////////////////////////
+        //账单对象数组填充
+        var billob={}
+            billob.user=putter
+            billob.flowmoney=needmoney
+            billob.whatdoing="购买了"+""+shopcarname+""+shopcarcount+"斤"
+            billob.isbuyoradd=0
+        if (arry[i].checked){
+            billarr.push(billob)
+        }else{
+            billarr.pop(billob)
+        }
+
+        ///////////////////////////////
+
+        ///////////////////////////////
+        //商品信息更新
+        var shopitemob={}
+        shopitemob.name=shopcarname
+        shopitemob.sellcount=sellcount+shopcarcount
+        shopitemob.stockcount=stockcount-shopcarcount
+        if (arry[i].checked){
+            shopitemarr.push(shopitemob)
+        }else{
+            shopitemarr.pop(shopitemob)
+        }
+        console.log(shopitemarr)
+        ///////////////////
+        //删除所需要的id填充
+        moneyid =[]
+        for (i in arry) {
+            if (arry[i].checked) {
+                moneyid.push(arry[i].value)
+            }
+        }
+        console.log(moneyid)
+    }
+
+//打开支付密码框
+    function moraddorder(){
+        if($("#inshopcarbuyusername").val()==null || $("#inshopcarbuyusername").val()=="" ){
+            $('#alertcontent').html("必须要输入收货人名字")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if($("#inshopcarbuyphone").val()==null || $("#inshopcarbuyphone").val()=="" ){
+            $('#alertcontent').html("必须要输入收货人手机")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if($('#inshopcaraddress').val()==null || $('#inshopcaraddress').val==""){
+            $('#alertcontent').html("必须要输入收货地址")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if(obarr.length==0){
+            $('#alertcontent').html("必须要选择一个要购买的商品")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else{
+            $('#inpupaybtn').html(" <button type=\"button\" onclick=\"realaddorder()\" class=\"am-btn am-btn-default\">确定</button>")
+            $('#doc-inpupay').modal({
+                relatedTarget: this,
+                closeOnConfirm: false,
+                closeViaDimmer:false,
+            })
+        }
+    }
+    //批量传入对象插入到订单中
+    function  realaddorder() {
+        if ($('#beforebuyneedinputpassword').val() == null || $('#beforebuyneedinputpassword').val() == '') {
+            $('#alertcontent').html("必须输入支付密码")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,
+                onConfirm: function (e) {
+                }
+            })
+        } else if (paypassword !== $('#beforebuyneedinputpassword').val()) {
+            $('#alertcontent').html("支付密码错误")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,
+                onConfirm: function (e) {
+                }
+            })
+        } else {
+            $.ajax({
+                type: "POST",                           //通过POST方式上传请求
+                url: "/othershopcar/moraddorder",
+                contentType: "application/json;charset=UTF-8",//如果传输对象到后台，就需要加这个，以及下方的转换json格式
+                data: JSON.stringify(obarr),
+
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader(header, token);
+                }, success: function (data) {
+                    $('#doc-inpupay').modal('close')
+                    $('#alertcontent').html("购买成功")
+                    $('#generyalert').modal({
+                        relatedTarget: this,
+                        closeViaDimmer:false,
+                        onConfirm: function (e) {
+                        }})
+                    addmorebill()
+                    upmybalance()
+                    upmoreshopitem()
+                    dellmoreshopcar()
+                }
+            })
+        }
+    }
+    //批量删除购物车
+    function dellmoreshopcar() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othershopcar/mordelshopcar",
+            data: {
+                list:moneyid
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                showshopcaralllist()
+            }
+        })
+    }
+    //获取当前余额与购买次数自加载
+    $(function () {
+        showThisUserBalance()
+    })
+    function showThisUserBalance(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/getuserbuyinfo",
+            data: {
+                buyuser:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                allbuycount=data.buynum
+                mybalance=data.balance
+                console.log("我的余额"+mybalance)
+            }
+        })
+    }
+    //更新余额
+    function upmybalance() {
+        //更新余额
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othershopcar/upbalance",
+            data: {
+                balacne: mybalance,
+                buyuser:$('#nowname').html(),
+                buynum:allbuycount+obarr.length,
+                allconsume:allmoney
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+
+            }
+        })
+    }
+    //批量插入账单
+    function addmorebill() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othershopcar/moraddbill",
+            contentType: "application/json;charset=UTF-8",//如果传输对象到后台，就需要加这个，以及下方的转换json格式
+            data: JSON.stringify(billarr),
+
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+            }
+        })
+    }
+    //批量更新商品销售数量与库存
+    function upmoreshopitem() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othershopcar/morupshopitem",
+            contentType: "application/json;charset=UTF-8",//如果传输对象到后台，就需要加这个，以及下方的转换json格式
+            data: JSON.stringify(shopitemarr),
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+            }
+        })
+    }
+</script>

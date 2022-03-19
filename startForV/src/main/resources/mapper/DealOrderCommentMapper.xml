@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--处理订单权限管理-->
+<mapper namespace="com.bysj.qiu.dao.DealOrderCommentDao">
+<!--增加评论信息-->
+    <insert id="addComment">
+        insert into tb_order_comment(shopname,buycount,consume,buyer,buyerheadimg,shopimg,commenttext,commentpoint) values(#{shopname},#{buycount},#{consume},#{buyer},#{buyerheadimg},#{shopimg},#{commenttext},#{commentpoint})
+    </insert>
+<!--    更改订单状况为已经评论-->
+    <update id="upOrderComment">
+        update tb_shop_order set iscomment=0 where buyer=#{buyer} and id=#{id}
+    </update>
+<!--   查询出此商品的平均评分 -->
+    <select id="selShopPointAvg" resultType="java.math.BigDecimal">
+       select avg(commentpoint) from tb_order_comment where shopname=#{shopname}
+    </select>
+<!--    更新商品项目的评分平均分-->
+    <update id="upShopItemAvgPoint">
+        update tb_shop_item set evaluatepoint=#{evaluatepoint} where name=#{name}
+    </update>
+<!--    在商品评论区里显示评论-->
+    <select id="selCommentToCommentArea" resultType="com.bysj.qiu.pojo.OrderComment">
+        select id,buyer,buyerheadimg,commenttext,commentpoint,commenttime from tb_order_comment where shopname=#{shopname} ORDER BY commenttime DESC
+    </select>
+</mapper>

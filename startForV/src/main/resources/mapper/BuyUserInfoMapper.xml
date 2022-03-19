@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bysj.qiu.dao.BuyUserInfoDao">
+<!--    获得当前普通用户的购买信息-->
+    <select id="selThisUserBalance" resultType="com.bysj.qiu.pojo.UserBuyInfo">
+        select * from tb_secret_user where user=#{ buyuser}
+    </select>
+
+<!--    更新余额与总购买次数-->
+    <update id="upBalance" >
+        update tb_secret_user set balance=#{balance},buynum=#{buynum} where user=#{ buyuser}
+    </update>
+
+<!--    插入订单信息-->
+    <insert id="addOrderInfo">
+        insert into tb_shop_order(buyer,buyshopitemname,address,tellphone,transfername,iscomment,isdone,consume,onecount,shopimg) values (#{buyer},#{buyshopitemname},#{address},#{tellphone},#{transfername},1,1,#{consume},#{onecount},#{shopimg})
+    </insert>
+
+<!--    插入账单信息-->
+    <insert id="addBillInfo">
+          insert into tb_bil(user,flowmoney,whatdoing,isbuyoradd) values (#{user},#{flowmoney},#{whatdoing},#{isbuyoradd})
+    </insert>
+<!--    水果列表购买次数+选择的数量-->
+    <update id="upAllForVCount">
+        update tb_shop_item set sellcount=#{sellcount},stockcount=#{stockcount} where name=#{name}
+    </update>
+
+    <!--    显示出榜一的果蔬-->
+    <select id="selNumFirstForV" resultType="com.bysj.qiu.pojo.ShopOrder">
+        SELECT buyshopitemname ,count(buyshopitemname) buycount FROM tb_shop_order where buyer=#{user} GROUP BY  buyshopitemname order by count(buyshopitemname) DESC LIMIT 0,1
+    </select>
+
+<!--    查询出所有账单 其实是部分，通过点击加载更多展现更多数据-->
+    <select id="selallbillinfo" resultType="com.bysj.qiu.pojo.UserBill">
+        select * from tb_bil where user=#{user} ORDER BY donetime DESC LIMIT 0,#{showmore}
+    </select>
+
+<!--查出有多少条-->
+    <select id="selBillAllCount" resultType="java.lang.Integer">
+        select count(*) from tb_bil where user=#{user}
+    </select>
+
+<!--    查询出所有未确认收货的订单-->
+    <select id="selNodoneOrder" resultType="com.bysj.qiu.pojo.ShopOrder">
+        select * from tb_shop_order where isdone=1 and buyer=#{buyer} ORDER BY buytime DESC
+    </select>
+
+<!--    查询出所有订单-->
+    <select id="selAllOrder" resultType="com.bysj.qiu.pojo.ShopOrder">
+        select * from tb_shop_order where buyer=#{buyer} ORDER BY buytime DESC
+    </select>
+
+<!--    更新订单状况为已收货-->
+    <update id="upOrderDone">
+        update tb_shop_order set isdone=0 where buyer=#{buyer} and id=#{id}
+    </update>
+</mapper>

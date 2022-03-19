@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--这是用于普通页面下对自己权限信息管理的-->
+<mapper namespace="com.bysj.qiu.dao.OtherManagerSelfDao">
+    <!--更新普通用户的头像-->
+    <update id="upOtherHeadImg">
+        update tb_secret_user set headimg = #{headimg} where user = #{user}
+    </update>
+    <!--    查询到普通用户的头像-->
+    <select id="selOtherHeadImg" resultType="com.bysj.qiu.pojo.Secret">
+        select * from tb_secret_user where user = #{user}
+    </select>
+<!--    充值-->
+    <update id="addBalance">
+        update tb_secret_user set balance=#{balance} where user = #{user}
+    </update>
+</mapper>

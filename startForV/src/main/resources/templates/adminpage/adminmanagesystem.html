@@ -1,0 +1,173 @@
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9" >
+            <div class="page-header-heading"><span class="am-icon-mail-reply sidebar-nav-link-logo"></span> 系统管理 </div>
+            <p class="page-header-description">管理一些图片轮播的图片</p>
+            <p class="page-header-description">发布一些系统信息</p>
+        </div>
+    </div>
+</div>
+<div class="row-content am-cf">
+    <div class="am-u-sm-12 am-u-md-12 am-u-lg-6">
+        <div class="widget am-cf widget-body-lg am-animation-slide-left">
+            <div class="am-scrollable-horizontal ">
+    <!--        信息发布    -->
+                <form class="am-form am-form-horizontal">
+                    <div class="am-form-group">
+                        <label for="systeminfo" class="col-sm-2 am-form-label">输入你要发布的系统信息</label>
+                        <div class="col-sm-10">
+                            <textarea id="systeminfo" placeholder="输入你要输入的信息" style="height:100px"></textarea>
+                        </div>
+                    </div>
+                    <div class="am-form-group" >
+                        <label for="systeminfo" class="col-sm-2 am-form-label">选择消息类型</label>
+                        <div class="col-sm-10">
+                            <select id="selectsysteminfotype" style="width: 50%">
+<!--                                <option value="option3">选项三........</option>-->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="am-form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="button" onclick="sendsysteminfo()" class="am-btn am-btn-default">发送</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="am-u-sm-12 am-u-md-12 am-u-lg-6">
+        <div class="widget am-cf widget-body-lg am-animation-slide-left">
+            <div class="am-scrollable-horizontal ">
+                <!--            信息显示-->
+                <table class="am-table am-table-striped am-table-hover">
+                    <thead>
+                    <tr>
+                        <th>信息类型</th>
+                        <th>信息内容</th>
+                        <th>发送者</th>
+                        <th>发送时间</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="messagesbody">
+<!--                    <tr>-->
+<!--                        <td>Amaze UI</td>-->
+<!--                        <td>http://amazeui.org</td>-->
+<!--                        <td>henry</td>-->
+<!--                        <td>2012-10-01</td>-->
+<!--                        <td>删除</td>-->
+<!--                    </tr>-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    //加载类型
+    $(function () {
+        loadmessagetype()
+    })
+    //加载类型
+    function loadmessagetype() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/adminsystemmanager/loadmessagestype",
+            dataType: "json",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (data) {
+                var str=""
+                for(var i=0;i<data.length;i++){
+                    str+="<option style='color: "+data[i].color+"' value="+data[i].messagetype+">"+data[i].messagetype+"</option>"
+                }
+                $('#selectsysteminfotype').html(str)
+            }
+        })
+    }
+    //发送信息
+    function sendsysteminfo() {
+        if($('#systeminfo').val()==""){
+            $('#alert').html('输入内容不能为空')
+            $('#startalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                onConfirm: function () {
+                },
+            })
+        }else {
+            //    发送系统全局信息
+            $.ajax({
+                type: "POST",                           //通过POST方式上传请求
+                url: "/adminsystemmanager/sendmessages",
+                dataType: "json",
+                data: {
+                    content:$('#systeminfo').val() ,
+                    sender:$('#nowname').html(),
+                    type:$('#selectsysteminfotype').val()
+                },
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader(header, token);
+                },
+                success: function (data) {
+                    loadallmessages()
+                    $('#systeminfo').val("")
+                    $('#alert').html('发送成功')
+                    $('#startalert').modal({
+                        relatedTarget: this,
+                        closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                        onConfirm: function () {
+                        },
+                    })
+                }
+            })
+        }
+    }
+    //加载出所有信息
+    $(function () {
+        loadallmessages()
+    })
+    function loadallmessages() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/adminsystemmanager/selmessages",
+            dataType: "json",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (data) {
+                var str=""
+                for(var i=0;i<data.length;i++){
+                    str+=" <tr style='color: "+data[i].color+"'>\n" +
+                        "                        <td>"+data[i].type+"</td>\n" +
+                        "                        <td>"+data[i].content+"</td>\n" +
+                        "                        <td>"+data[i].sender+"</td>\n" +
+                        "                        <td>"+data[i].sendtime+"</td>\n" +
+                        "                        <td><i class=\"am-icon-trash operateicon\" style='cursor:pointer;color: #c0000f' onclick='deladmin(" + data[i].id + ")'>" + "删除" + "</i><td>\n" +
+                        "                    </tr>"
+                }
+                $('#messagesbody').html(str)
+            }
+        })
+    }
+    function deladmin(id) {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/adminsystemmanager/delmessages",
+            dataType: "json",
+            data: {
+                id:id
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (data) {
+                loadallmessages()
+            }
+        })
+    }
+</script>

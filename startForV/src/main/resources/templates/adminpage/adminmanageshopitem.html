@@ -1,0 +1,286 @@
+<style>
+    .changecss:hover{
+        filter:alpha(Opacity=100);-moz-opacity:1;opacity: 1;
+    }
+    .changecss{
+        filter:alpha(Opacity=30);-moz-opacity:0.3;opacity: 0.3
+    }
+    .addplusclass{
+        position: absolute;
+        margin-left:30%;
+        font-size: 100px
+    }
+    .addplusclass:hover{
+       color: #5A84B7;
+    }
+</style>
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9">
+            <div class="page-header-heading"><span class="am-icon-home sidebar-nav-link-logo"></span>商品管理</div>
+            <p  class="page-header-description ">可以查看商品情况</p>
+            <p  class="page-header-description ">也可以修改商品的展现情况</p>
+        </div>
+        <div class="am-u-lg-3 tpl-index-settings-button">
+            <button type="button" class="page-header-button am-animation-scale-down" ><span class="am-icon-paint-brush"></span>新增商品</button>
+        </div>
+    </div>
+</div>
+<div class="row-content am-cf"  >
+    <div class="widget am-cf widget-body-lg am-animation-slide-left">
+        <div class="container-fluid am-cf" >
+            <div class="row" id="shopitemlist" >
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+$(function () {
+    showallshopitem()
+})
+var shopitemname
+var shopitemid
+var shopitemprice
+var shopitemsimpleintroduction
+var shopitemtype
+var shopitemstockcount
+//展现出商品列表
+function showallshopitem() {
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/adminshopitem/showallshopitem",
+        dataType: "json",
+        data: {},
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            var str=""
+            for (var i=0;i<data.length;i++){
+                str+="<div class=\"col-md-2 col-sm-4\" style=\"margin-bottom: 1%\">\n" +
+                    "                        <div class='' style=\"border: 5px solid #34C5D2;border-radius: 15px;padding: 1%;position: relative\" >\n" +
+                    "                            <div class=\"widget widget-body am-cf \" style=\"margin: 0px;padding: 0px\" >\n" +
+                    "                                <div class=\"widget-statistic-body\" onclick='openeditshopitem(" + data[i].id + ",\"" + data[i].name + "\"," + data[i].price + ",\"" + data[i].simpleintroduction + "\",\"" + data[i].forvpicture + "\",\"" + data[i].type + "\"," + data[i].stockcount + ")'>\n" +
+                    "                                    <img class='changecss' src=\"../adminshopitem/getforvImg.action?nowforvimg=" + data[i].forvpicture+ "\" width=\"100%\" height=\"100%\"  style=\"position: absolute;display:flex;\">\n" +
+                    "                                    <div class=\"widget-statistic-value\" style=\"color: #676767\">\n" +
+                    "                                       "+data[i].name+"\n" +
+                    "                                    </div>\n" +
+                    "                                </div>\n" +
+                    "                            </div>\n" +
+                    "                        </div>\n" +
+                    "                </div>"
+            }
+            //增加框
+            str+="<div class=\"col-md-2 col-sm-4\" style=\"margin-bottom: 1%\" onclick='openaddshopiteminfo()'>\n" +
+                "                        <div class='' style=\"border: 5px solid #34C5D2;border-radius: 15px;padding: 1%;position: relative\" >\n" +
+                "                            <div class=\"widget widget-body am-cf \" style=\"margin: 0px;padding: 0px\" >\n" +
+                "                                <div class=\"widget-statistic-body\" >\n" +
+                "                                      <i class='am-icon-plus addplusclass' style=''></i>\n"+
+                "                                </div>\n" +
+                "                            </div>\n" +
+                "                        </div>\n" +
+                "                </div>"
+            $('#shopitemlist').html(str)
+        }
+    })
+}
+//打开编辑框
+    function openeditshopitem(id,name,price,simpleintroduction,forvpicture,type,stockcount) {
+        $('#managershopitembtn').html(" <button type=\"button\" class=\"am-btn am-btn-danger\" onclick=\"delshopitem()\">确认删除</button><button type=\"button\" class=\"am-btn am-btn-secondary\" onclick=\"changeshopiteminfo()\">确认修改</button>")
+        shopitemid=id
+        shopitemname=name
+        shopitemsimpleintroduction=simpleintroduction
+        shopitemprice=price
+        shopitemtype=type
+        shopitemstockcount=stockcount
+        $("#shopitemimg").attr("src","../adminshopitem/getforvImg.action?nowforvimg="+forvpicture);
+        $('#inputshopname').val(name)
+        $('#inputshopprice').val(price)
+        $('#shopitemstockcount').val(stockcount)
+        $('#shopitemsimpleintroduction').val(simpleintroduction)
+        loadshopitemtype(type)
+        $('#doc-shopitem').modal({
+            relatedTarget: this,
+            closeViaDimmer: false,
+        })
+
+    }
+    var flag
+    //加载商品类别在下拉列表
+    function loadshopitemtype(type) {
+    flag=1
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/adminshopitem/showallshopitemtype",
+            dataType: "json",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=""
+                for (var i=0;i<data.length;i++){
+                    if(flag==1){
+                        if(data[i].shopitemtype==type){
+                            str+="<option value="+data[i].shopitemtype+" selected>"+data[i].shopitemtype+"</option>"
+                        }else{
+                            str+="<option value="+data[i].shopitemtype+">"+data[i].shopitemtype+"</option>"
+                        }
+                    }else{
+                        str+="<option value="+data[i].shopitemtype+">"+data[i].shopitemtype+"</option>"
+                    }
+                }
+                $('#select-shopitem').html(str)
+            }
+        })
+    }
+    //更新商品信息操作
+    function changeshopiteminfo() {
+        if($('#inputshopname').val()=="" || $('#inputshopprice').val()=="" ||  $('#shopitemstockcount').val()=="" ||  $('#shopitemsimpleintroduction').val()==""){
+            $('#alert').html("信息未填写完整")
+            $('#startalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,
+                onConfirm: function (e) {}})
+        }else{
+            $.ajax({
+                type: "POST",                           //通过POST方式上传请求
+                url: "/adminshopitem/booleanishaveshop",
+                dataType: "text",
+                data: {
+                    name: $('#inputshopname').val()=="",
+                    oldname: shopitemname
+                },
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader(header, token);
+                }, success: function (data) {
+                    if(data=="exist"){
+                        $('#alert').html("该商品已经存在")
+                        $('#startalert').modal({
+                            relatedTarget: this,
+                            closeViaDimmer: false,
+                            onConfirm: function (e) {}})
+                    }else {
+                        var s = $('#changeshoitemimg')[0].files[0];
+                        var formData = new FormData();
+                        formData.append("file_data", s);
+                        formData.append("id",shopitemid)
+                        formData.append("name",$('#inputshopname').val())
+                        formData.append("price",$('#inputshopprice').val())
+                        formData.append("simpleintroduction",$('#shopitemsimpleintroduction').val())
+                        formData.append("type",$('#select-shopitem').val())
+                        formData.append("stockcount",$('#shopitemstockcount').val())
+                        $.ajax({
+                            type: "POST",                           //通过POST方式上传请求
+                            url: "/adminshopitem/doshopitemtolocal",
+                            dataType: "text",
+                            processData: false,
+                            contentType: false,
+                            data: formData,
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader(header, token);
+                            },
+                            success: function (Data) {
+                                showallshopitem()
+                                $('#alert').html("修改成功")
+                                $('#startalert').modal({
+                                    relatedTarget: this,
+                                    closeViaDimmer: false,
+                                    onConfirm: function (e) {
+                                        $('#doc-shopitem').modal('close')
+                                    }})
+                            }})
+                    }
+                }
+            })
+        }
+    }
+    //打开增加框
+    function openaddshopiteminfo() {
+        $('#managershopitembtn').html(" <button type=\"button\" class=\"am-btn am-btn-secondary\" onclick=\"addshopiteminfo()\">确认增加</button>")
+        flag=0
+        loadshopitemtype()
+        $("#shopitemimg").attr("src","/images/headinit.png");
+        $('#inputshopname').val("")
+        $('#inputshopprice').val("")
+        $('#shopitemstockcount').val("")
+        $('#shopitemsimpleintroduction').val("")
+        $('#doc-shopitem').modal({
+            relatedTarget: this,
+            closeViaDimmer: false,
+        })
+    }
+    //增加信息
+    function addshopiteminfo() {
+        if($('#inputshopname').val()=="" || $('#inputshopprice').val()=="" ||  $('#shopitemstockcount').val()=="" ||  $('#shopitemsimpleintroduction').val()==""){
+            $('#alert').html("信息未填写完整")
+            $('#startalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,
+                onConfirm: function (e) {}})
+        }else{
+            $.ajax({
+                type: "POST",                           //通过POST方式上传请求
+                url: "/adminshopitem/booleanishaveshop",
+                dataType: "text",
+                data: {
+                    name: $('#inputshopname').val()
+                },
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader(header, token);
+                }, success: function (data) {
+                    if(data=="exist"){
+                        $('#alert').html("该商品已经存在")
+                        $('#startalert').modal({
+                            relatedTarget: this,
+                            closeViaDimmer: false,
+                            onConfirm: function (e) {}})
+                    }else{
+                        var s = $('#changeshoitemimg')[0].files[0];
+                        var formData = new FormData();
+                        formData.append("file_data", s);
+                        formData.append("name",$('#inputshopname').val())
+                        formData.append("price",$('#inputshopprice').val())
+                        formData.append("simpleintroduction",$('#shopitemsimpleintroduction').val())
+                        formData.append("type",$('#select-shopitem').val())
+                        formData.append("stockcount",$('#shopitemstockcount').val())
+                        $.ajax({
+                            type: "POST",                           //通过POST方式上传请求
+                            url: "/adminshopitem/addshopiteminfo",
+                            dataType: "text",
+                            processData: false,
+                            contentType: false,
+                            data: formData,
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader(header, token);
+                            },
+                            success: function (Data) {
+                                showallshopitem()
+                                $('#alert').html("增加成功")
+                                $('#startalert').modal({
+                                    relatedTarget: this,
+                                    closeViaDimmer: false,
+                                    onConfirm: function (e) {
+                                        $('#doc-shopitem').modal('close')
+                                    }})
+                            }})
+                    }
+                }})
+    }}
+    //删除信息
+    function delshopitem() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/adminshopitem/delshopitem",
+            dataType: "json",
+            data: {
+                id:shopitemid
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                showallshopitem()
+            }
+        })
+    }
+</script>

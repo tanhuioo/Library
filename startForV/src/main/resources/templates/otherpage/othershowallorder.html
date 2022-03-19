@@ -1,0 +1,372 @@
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9">
+            <div class="page-header-heading"><span class="am-icon-home sidebar-nav-link-logo"></span>显示所有的订单</div>
+            <p class="page-header-description">这里将会显示你以前买过的订单</p>
+        </div>
+        <div class="widget-function am-fr">
+            <button type="button" class="am-btn am-btn-primary" id="clicktoshownodoneorder" onclick="clicktoshownodoneorder()">查看未确认收货的订单</button>
+            <button type="button" class="am-btn am-btn-primary" id="clicktoshowallorder" onclick="clicktoshowallorder()">查看总订单</button>
+        </div>
+    </div>
+</div>
+
+<div class="row-content am-cf">
+    <div class="widget am-cf widget-body-lg am-animation-slide-left" >
+        <div class="container-fluid am-cf " style="border: 5px solid #33C5D2;border-radius: 15px;height: 640px;overflow: auto" id="showorderinfo">
+
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $(document).scroll(function () {
+            $("#Hidden").val($(window).scrollTop());
+        });
+    });
+    var commentpoint
+    var flag
+//获得所有未确认收货的数据
+    function getallnodoneinfo() {
+        console.log(imgname)
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/getnodoneorder",
+            data: {
+                buyer:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=""
+                if(data.length==0){
+                    str+="<div style='font-size: 50px'>你的订单已经全部确认收货了</div>"
+                    $('#showorderinfo').html(str)
+                }else {
+                    for (var i = 0; i < data.length; i++) {
+                        str += "<div style=\"height: 30%;margin-top: 1%;background-color:#F1F3F4 ;border-radius: 5px;position: relative\" >\n" +
+                            "                <div onclick='showthisorderexpressinfo(" +
+                            "\"" + data[i].tellphone + "\"," +
+                            "\"" + data[i].transfername + "\"," +
+                            "\"" + data[i].address + "\")'  style=\"background-color:#E9ECF3;border:4px solid #E9ECF3 ;margin-top: 1%;margin-left: 1%;width: 98%;height: 60%; border-radius: 10px;position: relative\" >\n" +
+                            "                    <img src=\"../other/getsendrImg.action?nowforvimg=" + data[i].shopimg + "\" width=\"8%\" height=\"100%\" style=\"float: left; border-bottom-left-radius: 10px;border-top-left-radius: 10px\">\n" +
+                            "                    <div style='margin-left: 10%;font-size: 40px'>" + data[i].buyshopitemname + "</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 20%;font-size: 40px'>￥" + data[i].consume + "</div>\n" +
+                            "                    <div style='margin-left: 10%;font-size: 30px'>共" + data[i].onecount + "斤</div>\n" +
+                            "                    <div style='position: absolute;right: 50%;top: 20%;font-size: 30px'>送往" + data[i].address + "</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 2%'>" + data[i].buytime + "</div>\n" +
+                            "                </div>\n" +
+                            "                <div style=\"position: absolute;bottom: 5px;right: 5px\">\n" +
+                            "                    <div type=\"button\" class=\"am-btn am-round am-btn-warning\" onclick='isdone("+
+                                                                                                                        "" + data[i].id +"," +
+                                                                                                                        "" + data[i].onecount + "," +
+                                                                                                                        "" + data[i].consume + "," +
+                                                                                                                        "\"" + data[i].buyshopitemname + "\","+
+                                                                                                                        "\"" + data[i].shopimg + "\")'>"+"确认收货"+"</div>\n" +
+                                                                                                                        "                </div>\n" +
+                                                                                                                        "            </div>"
+                    }
+                }
+                $('#showorderinfo').html(str)
+            }
+        })
+    }
+    //出现确认收货的弹窗
+    function isdone(idinfo,onecount,consume,buyshopitemname,shopimg) {
+
+        infoid=idinfo
+        $('#doc-isdone').modal({
+            relatedTarget: this,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+                $('#inpupaybtn').html(" <button type=\"button\" onclick='realdoneorder("+infoid+","+onecount+","+consume+",\""+buyshopitemname+"\",\""+shopimg+"\",)' class=\"am-btn am-btn-default\">确定</button>")
+                $('#doc-inpupay').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,
+                })
+            }
+        })
+    }
+    var fuckcachebuyshopitemname
+    var fuckcacheonecount
+    var fuckcacheconsume
+    var fuckcacheshopimg
+    var fuckcacheid
+    //单独的评论
+    function comment(id,onecount,consume,buyshopitemname,shopimg) {
+        $('#comenttext').val("")
+        $('#commenthead').html("评论一下吧？")
+        fuckcacheid=id
+        fuckcacheshopimg=shopimg
+        fuckcacheconsume=consume
+        fuckcacheonecount=onecount
+     fuckcachebuyshopitemname=buyshopitemname
+
+        $('#doc-iscomment').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/othercomment/upcommentstate",
+                    data: {
+                        id: fuckcacheid,
+                        buyer: $('#nowname').html()
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    }, success: function (data) {
+                        $('#beforebuyneedinputpassword').val("")
+                        $('#doc-iscomment').modal('close')
+                        clicktoshowallorder()
+                        addcommentinfo()
+                        $(window).scrollTop($("#Hidden").val());
+
+                    }
+                })
+                    }
+                })
+            }
+    //增加进评论列表
+    function addcommentinfo() {
+            $.ajax({
+                type: "POST",                           //通过POST方式上传请求
+                url: "/othercomment/addcommentinfo",
+                data: {
+                    shopname: fuckcachebuyshopitemname,
+                    buycount:fuckcacheonecount,
+                    consume:fuckcacheconsume,
+                    buyer:$('#nowname').html(),
+                    shopimg:fuckcacheshopimg,
+                    commenttext:$('#comenttext').val(),
+                    commentpoint:commentpoint
+                },
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader(header, token);
+                }, success: function (data) {
+                    getavgpoint()
+                }
+                    })
+        }
+    //支付密码输入完后确认收货顺便评论
+    function realdoneorder(id,onecount,consume,buyshopitemname,shopimg) {
+        $('#comenttext').val("")
+        fuckcacheid=id
+        fuckcachebuyshopitemname=buyshopitemname
+        fuckcacheshopimg=shopimg
+        fuckcacheconsume=consume
+        fuckcacheonecount=onecount
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/uporderdone",
+            data: {
+                id:id,
+                buyer:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                $('#commenthead').html("顺便评论一下叭？")
+                $('#doc-iscomment').modal({
+                    relatedTarget: this,
+                    closeOnConfirm: false,
+                    closeViaDimmer:false,
+                    onConfirm: function (e) {
+                        $.ajax({
+                            type: "POST",                           //通过POST方式上传请求
+                            url: "/othercomment/upcommentstate",
+                            data: {
+                                id: fuckcacheid,
+                                buyer: $('#nowname').html()
+                            },
+                            beforeSend: function (xhr) {
+                                xhr.setRequestHeader(header, token);
+                            }, success: function (data) {
+                                $('#beforebuyneedinputpassword').val("")
+                                $('#doc-inpupay').modal('close')
+                                $('#doc-iscomment').modal('close')
+                                if(flag==1){
+                                    clicktoshownodoneorder()
+                                }else{
+                                    clicktoshowallorder()
+                                }
+                                addcommentinfo()
+                                $(window).scrollTop($("#Hidden").val());
+                            }
+                        })
+                    },
+                    onCancel:function (e) {
+                        $('#beforebuyneedinputpassword').val("")
+                        $('#doc-inpupay').modal('close')
+                        if(flag==1){
+                            clicktoshownodoneorder()
+                        }else{
+                            clicktoshowallorder()
+                        }
+                        $(window).scrollTop($("#Hidden").val());
+                    }
+                })
+            }
+        })
+    }
+    //点击展现具体快递信息
+    function showthisorderexpressinfo(tellphone,transfername,address){
+        $('#receiveexpressname').html("收货人名称:"+transfername)
+        $('#receiveexpresstellphone').html("收货人电话:"+tellphone)
+        $('#receiveexpressaddress').html("收货人地址:"+address)
+        $('#doc-showoredrexpressinfo').modal({
+            relatedTarget: this,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+            }
+        })
+    }
+    //自家在未确认收货订单
+    $(function () {
+        clicktoshownodoneorder()
+    })
+    //点击按钮出现所有订单
+    function clicktoshownodoneorder() {
+        $('#clicktoshownodoneorder').addClass("am-btn-warning")
+        $('#clicktoshowallorder').removeClass("am-btn-warning")
+        getallnodoneinfo()
+        flag=1
+    }
+    //显示所有订单
+    function clicktoshowallorder() {
+        flag=2
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/getallorder",
+            data: {
+                buyer:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=""
+                for(var i=0;i<data.length;i++){
+                    if(data[i].isdone==1){
+                        str+="<div style=\"height: 30%;margin-top: 1%;background-color:#F1F3F4 ;border-radius: 5px;position: relative\" >\n" +
+                            "                <div onclick='showthisorderexpressinfo(" +
+                            "\"" + data[i].tellphone + "\"," +
+                            "\"" + data[i].transfername + "\","+
+                            "\"" + data[i].address + "\")'  style=\"background-color:#E9ECF3;border:4px solid #E9ECF3 ;margin-top: 1%;margin-left: 1%;width: 98%;height: 60%; border-radius: 10px;position: relative\" >\n" +
+                            "                    <img src=\"../other/getsendrImg.action?nowforvimg="+data[i].shopimg+"\" width=\"8%\" height=\"100%\" style=\"float: left; border-bottom-left-radius: 10px;border-top-left-radius: 10px\">\n" +
+                            "                    <div style='margin-left: 10%;font-size: 40px'>"+data[i].buyshopitemname+"</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 20%;font-size: 40px'>￥"+data[i].consume+"</div>\n" +
+                            "                    <div style='margin-left: 10%;font-size: 30px'>共"+data[i].onecount+"斤</div>\n" +
+                            "                    <div style='position: absolute;right: 50%;top: 20%;font-size: 30px'>送往"+data[i].address+"</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 2%'>"+data[i].buytime+"</div>\n" +
+                            "                </div>\n" +
+                            "                <div style=\"position: absolute;bottom: 5px;right: 5px\">\n" +
+                            "                    <div type=\"button\" class=\"am-btn am-round am-btn-warning\" onclick='isdone("+
+                            "" + data[i].id +"," +
+                            "" + data[i].onecount + "," +
+                            "" + data[i].consume + "," +
+                            "\"" + data[i].buyshopitemname + "\","+
+                            "\"" + data[i].shopimg + "\")'>"+"确认收货"+"</div>\n" +
+                            "                </div>\n" +
+                            "            </div>"
+                    }else if(data[i].iscomment==1){
+                        str+="<div style=\"height: 30%;margin-top: 1%;background-color:#F1F3F4 ;border-radius: 5px;position: relative\" class='am-animation-slide-top'>\n" +
+                            "                <div onclick='showthisorderexpressinfo(" +
+                            "\"" + data[i].tellphone + "\"," +
+                            "\"" + data[i].transfername + "\","+
+                            "\"" + data[i].address + "\")'  style=\"background-color:#E9ECF3;border:4px solid #E9ECF3 ;margin-top: 1%;margin-left: 1%;width: 98%;height: 60%; border-radius: 10px;position: relative\" >\n" +
+                            "                    <img src=\"../other/getsendrImg.action?nowforvimg="+data[i].shopimg+"\" width=\"8%\" height=\"100%\" style=\"float: left; border-bottom-left-radius: 10px;border-top-left-radius: 10px\">\n" +
+                            "                    <div style='margin-left: 10%;font-size: 40px'>"+data[i].buyshopitemname+"</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 20%;font-size: 40px'>￥"+data[i].consume+"</div>\n" +
+                            "                    <div style='margin-left: 10%;font-size: 30px'>共"+data[i].onecount+"斤</div>\n" +
+                            "                    <div style='position: absolute;right: 50%;top: 20%;font-size: 30px'>送往"+data[i].address+"</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 2%'>"+data[i].buytime+"</div>\n" +
+                            "                </div>\n" +
+                            "                <div style=\"position: absolute;bottom: 5px;right: 5px\">\n" +
+                            "                    <div type=\"button\" class=\"am-btn am-round am-btn-warning\" onclick='comment("+
+                            "" + data[i].id +"," +
+                            "" + data[i].onecount + "," +
+                            "" + data[i].consume + "," +
+                            "\"" + data[i].buyshopitemname + "\","+
+                            "\"" + data[i].shopimg + "\")'>评价</div>\n" +
+                            "                </div>\n" +
+                            "            </div>"
+                    }else {
+                        str+="<div style=\"height: 30%;margin-top: 1%;background-color:#F1F3F4 ;border-radius: 5px;position: relative\" class='am-animation-slide-top'>\n" +
+                            "                <div onclick='showthisorderexpressinfo(" +
+                            "\"" + data[i].tellphone + "\"," +
+                            "\"" + data[i].transfername + "\","+
+                            "\"" + data[i].address + "\")'  style=\"background-color:#E9ECF3;border:4px solid #E9ECF3 ;margin-top: 1%;margin-left: 1%;width: 98%;height: 60%; border-radius: 10px;position: relative\" >\n" +
+                            "                    <img src=\"../other/getsendrImg.action?nowforvimg="+data[i].shopimg+"\" width=\"8%\" height=\"100%\" style=\"float: left; border-bottom-left-radius: 10px;border-top-left-radius: 10px\">\n" +
+                            "                    <div style='margin-left: 10%;font-size: 40px'>"+data[i].buyshopitemname+"</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 20%;font-size: 40px'>￥"+data[i].consume+"</div>\n" +
+                            "                    <div style='margin-left: 10%;font-size: 30px'>共"+data[i].onecount+"斤</div>\n" +
+                            "                    <div style='position: absolute;right: 50%;top: 20%;font-size: 30px'>送往"+data[i].address+"</div>\n" +
+                            "                    <div style='position: absolute;right: 2%;top: 2%'>"+data[i].buytime+"</div>\n" +
+                            "                </div>\n" +
+                            "                <div style=\"position: absolute;bottom: 5px;right: 5px\">\n" +
+                            "                </div>\n" +
+                            "            </div>"
+                    }
+                    }
+                $('#showorderinfo').html(str)
+            }
+        })
+        $('#showorderinfo').html("hello")
+        $('#clicktoshownodoneorder').removeClass("am-btn-warning")
+        $('#clicktoshowallorder').addClass("am-btn-warning")
+    }
+    //获得当前商品的平均分
+    var shopvagpoint
+    function getavgpoint(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othercomment/getshopavgpoint",
+            data: {
+                shopname:fuckcachebuyshopitemname
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                shopvagpoint=data
+                upshopavgpoint()
+            }
+        })
+    }
+    //更新一个商品的评分
+    function upshopavgpoint(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othercomment/upshopitemavgpoint",
+            data: {
+                evaluatepoint:shopvagpoint,
+                name:fuckcachebuyshopitemname
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+
+            }
+        })
+    }
+    //选择评分
+    layui.use(['rate'], function(){
+    var rate = layui.rate;
+
+    rate.render({
+        elem: '#choiseleave'
+        ,value: 5
+        ,half: true
+        ,text: true
+        ,setText: function(value){
+            commentpoint=value
+            this.span.text(value);
+        }
+    })
+
+})
+
+
+
+
+</script>

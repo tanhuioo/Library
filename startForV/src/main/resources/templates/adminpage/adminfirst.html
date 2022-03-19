@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>管理员大大</title>
+    <link type="text/css" rel="stylesheet" href="/webjars/amazeui/2.7.2/dist/css/amazeui.min.css">
+    <link type="text/css" rel="stylesheet" href="/webjars/amazeui/2.7.2/dist/css/amazeui.css">
+    <link type="text/css" rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="/assets/css/app.css">
+    <style>
+        ::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+            border-radius: 5px;
+            -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+            background: rgba(60, 133, 250, 0.56);
+        }
+
+        .am-selected-btn {
+            width: 235%;
+        }
+        a:hover{
+            text-decoration: none;
+        }
+        .tpl-content-wrapper{
+            min-height:auto;
+        }
+        .left-sidebar{
+            position: fixed;
+        }
+        ::-webkit-scrollbar {/*滚动条整体样式*/
+            width: 4px;     /*高宽分别对应横竖滚动条的尺寸*/
+            height: 4px;
+        }
+    </style>
+</head>
+<body >
+<!--出现警告模态框-->
+<div class="am-modal am-modal-confirm" tabindex="-1" id="startalert" style="z-index: 14000; ">
+    <div class="am-modal-dialog" style="background: white ; width: 25%;border: 5px solid #b1f5ef" >
+        <div class="am-modal-hd" id="dellkabname"></div>
+        <div class="am-modal-bd" id="alert">
+
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">确定</span>
+        </div>
+    </div>
+</div>
+<!--更换头像模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-upadminheadimg" style="z-index: 12000;"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef">
+        <div class="am-modal-hd">更换头像
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+                <div class="am-form-file" style="margin-left: 8px;">
+                    <div id="file-list"></div>
+                    <button type="button" class="am-btn batchbt"
+                            style="border-radius: 20px !important; width: 150px;">
+                        <i class="am-icon-cloud-upload"></i>
+                        <span>上传图片</span>
+                    </button>
+                    <input id="doc-form-file" type="file" accept="image/*" onchange="changImg(event)" >
+                </div>
+                     <img alt="选择图片" id="myImg"  height="100px",width="100px">
+<!--                <button onclick="showPic()"> 展示图片</button>-->
+<!--                <br/>-->
+<!--                <br/>-->
+<!--                <img id="img1" src="" width="120" >-->
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+        </div>
+
+    </div>
+</div>
+<!--出现增加admin的模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-admininsert"  style="z-index: 12000;"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef">
+        <div class="am-modal-hd">增加
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-user am-icon-fw"></i></span>
+            <input type="text" id="insertuser" name="insertuser" class="am-form-field" placeholder="Username">
+        </div>
+
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-lock am-icon-fw"></i></span>
+            <input type="password" id="insertpassword" name="insertpassword" class="am-form-field" placeholder="Password">
+        </div>
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-lock am-icon-fw"></i></span>
+            <input type="password" id="insertrepassword" class="am-form-field" placeholder="REPassword">
+        </div>
+
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+        </div>
+
+    </div>
+</div>
+<!--出现admin信息控制更新的模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-admininfoupda"  style="z-index: 12000; "
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef">
+        <div class="am-modal-hd">更新
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+
+                <div class="am-input-group">
+                    <span class="am-input-group-label"><i class="am-icon-user am-icon-fw"></i></span>
+                    <input type="text" id="updauser" name="updauser" class="am-form-field" placeholder="Username">
+                </div>
+
+                <div class="am-input-group">
+                    <span class="am-input-group-label"><i class="am-icon-lock am-icon-fw"></i></span>
+                    <input type="text" id="updapassword" name="updapassword" class="am-form-field" placeholder="Password">
+                </div>
+                <div class="am-input-group" style="text-align: left" id="adminselect">
+                    <span class="am-input-group-label"><i class="am-icon-check-square-o am-icon-fw"></i></span>
+                    <select data-am-selected style="width: 400px" id="choicebyadmin">
+                        <optgroup label="选择你的权利">
+                            <option value="ADMIN" selected>管理员</option>
+                            <option value="USER" >普通用户</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+            <div class="am-modal-footer">
+                <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+                <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+            </div>
+
+    </div>
+</div>
+<!--出现新的，专门为当前用户服务admin信息控制更新的模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-admininfoupdanow"  style="z-index: 12000; "
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef">
+        <div class="am-modal-hd">更新
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-user am-icon-fw"></i></span>
+            <input type="text" id="updausernow" name="updauser" class="am-form-field" placeholder="Username">
+        </div>
+
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-lock am-icon-fw"></i></span>
+            <input type="text" id="updapasswordnow" name="updapassword" class="am-form-field" placeholder="Password">
+        </div>
+
+
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+        </div>
+
+    </div>
+</div>
+<!--出现admin信息控制的模态框-->
+<div class="am-modal am-modal-no-btn " tabindex="-1" id="doc-admininfo" style="z-index: 10000">
+    <div class="am-modal-dialog">
+        <div class="am-modal-hd page-header-heading">管理员权限控制
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <table width="100%" class="am-table am-table-compact am-text-nowrap tpl-table-black  am-table-striped am-table-hover" id="example-r">
+                <thead >
+                <tr>
+                    <td>用户名</td>
+                    <td>密码</td>
+                    <td>父用户</td>
+                    <td>操作</td>
+                </tr>
+                </thead>
+                <tbody id="admininfo">
+                <!-- more data -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!--出现user修改模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-upuserinfo"  style="z-index: 12000; "
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" >
+        <div class="am-modal-hd">更新
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-user am-icon-fw"></i></span>
+                <input type="text" id="updaotheruser" name="updauser" class="am-form-field" placeholder="Username">
+            </div>
+
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-lock am-icon-fw"></i></span>
+                <input type="text" id="updaotherpassword" name="updapassword" class="am-form-field" placeholder="Password">
+            </div>
+
+            <div class="am-input-group" style="text-align: left">
+                <span class="am-input-group-label"><i class="am-icon-check-square-o am-icon-fw"></i></span>
+                <select data-am-selected style="width: 400px" id="choice">
+                   <optgroup label="选择你的权利">
+                        <option value="USER" selected>普通用户</option>
+                        <option value="ADMIN" >管理员</option>
+                   </optgroup>
+                </select>
+            </div>
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+        </div>
+
+    </div>
+</div>
+<!--出现具体未读信息模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-showunreadmsg"  style="z-index: 12000;"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" >
+        <div class="am-modal-hd" style="text-align: left"><span style="color: green">发送者</span>:<span id="senderinfo"></span>
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div style="height: 50px;text-align: left;margin-left: 2%" >
+            <span style="color: #0c79b1">消息</span>: <span id="msginfo" >
+            </span>
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+        </div>
+    </div>
+
+</div>
+<!--出现商品管理的模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-shopitem"  style="z-index: 12000;"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" >
+        <div class="am-modal-hd" >修改商品
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="container-fluid" style="padding-top: 0px">
+            <div class="row">
+                <div class="col-md-4" style="padding: 0px">
+                     <div class='' style=";position: relative" >
+                           <div class="widget widget-body am-cf " style="margin: 0px;padding: 0px" >
+                               <img src="../adminshopitem/getforvImg.action?nowforvimg=红富士.png" width="100%" height="100%" id="shopitemimg" style="position: absolute;display:flex;">
+                           </div>
+                         <div class="am-form-file" style="margin-left: 8px;">
+                             <button type="button" class="am-btn batchbt"
+                                     style="border-radius: 20px !important; width: 150px;">
+                                 <i class="am-icon-cloud-upload"></i>
+                                 <span>上传图片</span>
+                             </button>
+                             <input id="changeshoitemimg" type="file" onchange="changshopitemImg(event)" >
+                         </div>
+                      </div>
+                </div>
+                <div class="col-md-8" style="border: 2px solid #E9ECF3;border-radius: 8px;">
+                    <form class="am-form">
+                        <fieldset >
+                            <div class="am-form-group">
+                                <label for="inputshopname">商品名</label>
+                                <input type="text" id="inputshopname" class="am-form-field" placeholder="输入商品名">
+                            </div>
+                            <div class="am-form-group">
+                                <label for="inputshopprice">价格/斤</label>
+                                <input type="number" min="0" step="0.01" id="inputshopprice" class="am-form-field" placeholder="输入商品名">
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12" style="border: 2px solid #E9ECF3;border-radius: 8px;">
+                    <form class="am-form">
+                            <div class="am-form-group">
+                                <label for="shopitemstockcount">库存</label>
+                                <input type="number" min="0" id="shopitemstockcount"  class="am-form-field" placeholder="输入你的库存">
+                            </div>
+                            <div class="am-form-group">
+                                <label for="select-shopitem">下拉多选框</label>
+                                <select id="select-shopitem">
+
+                                </select>
+                            </div>
+                            <div class="am-form-group">
+                                <label for="shopitemsimpleintroduction">简介</label>
+                                <textarea id="shopitemsimpleintroduction" class="am-form-field" placeholder="简介"></textarea>
+                            </div>
+                        <div id="managershopitembtn">
+                            <button type="button" class="am-btn am-btn-secondary" onclick="changeshopiteminfo()">确认修改</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        </div>　
+    </div>
+
+</div>
+<!--内容-->
+<div class="am-g tpl-g">
+        <!-- 头部 -->
+        <header data-am-sticky style="z-index: 1105">
+                <!-- logo -->
+                <div class="am-fl tpl-header-logo" >
+                    <a href="javascript:;"><h3 id="headuser">管理员</h3></a>
+                </div>
+                <!-- 右侧内容 -->
+
+                <div class="tpl-header-fluid">
+                    <!-- 侧边切换 -->
+                    <div class="am-fl tpl-header-switch-button am-icon-list">
+                                <span>
+
+                            </span>
+                    </div>
+                    <!-- 搜索 -->
+<!--                    <div class="am-fl tpl-header-search">-->
+<!--                        <form class="tpl-header-search-form" action="javascript:;">-->
+<!--                            <button class="tpl-header-search-btn am-icon-search"></button>-->
+<!--                            <input class="tpl-header-search-box" type="text" placeholder="搜索内容...">-->
+<!--                        </form>-->
+<!--                    </div>-->
+                    <!-- 其它功能-->
+                    <div class="am-fr tpl-header-navbar">
+                        <ul>
+                            <!-- 欢迎语 -->
+                            <li class="am-text-sm tpl-header-navbar-welcome">
+                                <a href="javascript:;">欢迎你,  <span sec:authentication="name" id="nowname"></span> </a>
+                            </li>
+
+                            <!-- 新邮件 -->
+                            <li class="am-dropdown tpl-dropdown" data-am-dropdown>
+                                <a href="javascript:;" class="am-dropdown-toggle tpl-dropdown-toggle" data-am-dropdown-toggle>
+                                    <i class="am-icon-envelope"></i>
+                                    <span class="am-badge am-badge-success am-round item-feed-badge" id="UnreadMsgNum"></span>
+                                </a>
+                                <!-- 弹出列表 -->
+                                <ul class="am-dropdown-content tpl-dropdown-content" id="UnreadMsg" >
+
+                                </ul>
+                            </li>
+
+                            <!-- 新提示 -->
+                            <li class="am-dropdown" data-am-dropdown>
+                                <a href="javascript:;" class="am-dropdown-toggle" data-am-dropdown-toggle>
+                                    <i class="am-icon-bell"></i>
+                                    <span class="am-badge am-badge-warning am-round item-feed-badge" id="systemmessagecount"></span>
+                                </a>
+
+                                <!-- 弹出列表 -->
+                                <ul class="am-dropdown-content tpl-dropdown-content"  id="systemmessagecontent">
+
+<!--                                    <li class="tpl-dropdown-menu-notifications" >-->
+<!--                                        <a href="javascript:;" class="tpl-dropdown-menu-notifications-item am-cf">-->
+<!--                                            <div class="tpl-dropdown-menu-notifications-title">-->
+<!--                                                <i class="am-icon-star"></i>-->
+<!--                                                <span> 有3个来自人事部的消息</span>-->
+<!--                                            </div>-->
+<!--                                            <div class="tpl-dropdown-menu-notifications-time">-->
+<!--                                                30分钟前-->
+<!--                                            </div>-->
+<!--                                        </a>-->
+<!--                                    </li>-->
+
+                                </ul>
+                            </li>
+
+                            <!-- 退出 -->
+                            <li class="am-text-sm">
+                                <a href="javascript:;" id="logout">
+                                    <span class="am-icon-sign-out"></span> 退出
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </header>
+    <!-- 风格切换 -->
+    <div class="tpl-skiner">
+        <div class="tpl-skiner-toggle am-icon-cog">
+        </div>
+        <div class="tpl-skiner-content">
+            <div class="tpl-skiner-content-title">
+                选择主题
+            </div>
+            <div class="tpl-skiner-content-bar">
+                <span class="skiner-color skiner-white" data-color="theme-white"></span>
+                <span class="skiner-color skiner-black" data-color="theme-black"></span>
+            </div>
+        </div>
+    </div>
+        <!-- 侧边导航栏 -->
+        <div class="left-sidebar">
+            <!-- 用户信息 -->
+            <div class="tpl-sidebar-user-panel">
+                <div class="tpl-user-panel-slide-toggleable" style="margin-left: 60px">
+                    <div class="tpl-user-panel-profile-picture" >
+                        <h3><img src="/images/01.png" id="headimg" class=""></h3>
+                    </div>
+                    <span class="user-panel-logged-in-text" onclick="openupadminheadimg()" style="cursor: pointer;">
+                      <i class="am-icon-circle-o am-text-success tpl-user-panel-status-icon"></i>
+                       更换头像
+                    </span>
+
+                </div>
+            </div>
+
+            <!-- 菜单 -->
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-heading">Components <span class="sidebar-nav-heading-info"> 附加组件</span></li>
+                <li class="sidebar-nav-link " >
+                    <a onclick="index()" id="index" >
+                        <i class="am-icon-home sidebar-nav-link-logo"></i> 首页
+                    </a>
+                </li>
+                <li class="sidebar-nav-link" >
+                    <a  onclick="powermanager()" id="powermanager">
+                        <i class="am-icon-key sidebar-nav-link-logo"></i> 权限管理
+                    </a>
+                </li>
+                <li class="sidebar-nav-link">
+                    <a onclick="shopitemmanager()" id="shopitemmanager">
+                        <i class="am-icon-calendar sidebar-nav-link-logo"></i> 商品管理
+                    </a>
+                </li>
+<div class="superadminpower">
+<!--                <li class="sidebar-nav-link">-->
+<!--                    <a onclick="systemmanager()">-->
+<!--                        <i class="am-icon-wpforms sidebar-nav-link-logo"></i> 系统管理-->
+<!--                    </a>-->
+<!--                </li>-->
+</div>
+<div class="generaladminpower">
+<!--                <li class="sidebar-nav-link">-->
+<!--                    <a onclick="lookAllSystemMessages()">-->
+<!--                        <i class="am-icon-bar-chart sidebar-nav-link-logo"></i> 查看所有表格-->
+
+<!--                    </a>-->
+<!--                </li>-->
+</div>
+                <li class="sidebar-nav-heading">Page<span class="sidebar-nav-heading-info"> 常用页面</span></li>
+                <li class="sidebar-nav-link">
+                    <a href="javascript:;" class="sidebar-nav-sub-title" style="text-decoration: none" id="relate">
+                        <i class="am-icon-info sidebar-nav-link-logo"></i> 交互
+                        <span class="am-icon-chevron-down am-fr am-margin-right-sm sidebar-nav-sub-ico"></span>
+                    </a>
+                    <ul class="sidebar-nav sidebar-nav-sub">
+                        <li class="sidebar-nav-link">
+                            <a onclick="messagereceive()" id="receive">
+                                <i class="am-icon-mail-forward sidebar-nav-link-logo"></i> 接受
+                            </a>
+                        </li>
+
+                        <li class="sidebar-nav-link">
+                            <a onclick="messagesend()" id="send">
+                                <i class="am-icon-mail-reply sidebar-nav-link-logo"></i> 发送
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+<!--                <li class="sidebar-nav-link">-->
+<!--                    <a href="sign-up.html">-->
+<!--                        <i class="am-icon-clone sidebar-nav-link-logo"></i> 注册-->
+<!--                        <span class="am-badge am-badge-secondary sidebar-nav-link-logo-ico am-round am-fr am-margin-right-sm">6</span>-->
+<!--                    </a>-->
+<!--                </li>-->
+<!--                <li class="sidebar-nav-link">-->
+<!--                    <a href="login.html">-->
+<!--                        <i class="am-icon-key sidebar-nav-link-logo"></i> 登录-->
+<!--                    </a>-->
+<!--                </li>-->
+
+
+            </ul>
+        </div>
+        <!-- 内容区域    今后打算用ajax的load方法将页面放进来-->
+        <div class="tpl-content-wrapper" id="manageuserpower">
+
+
+        </div>
+</div>
+
+<script type="text/javascript" src="/webjars/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript" src="/webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/webjars/echarts/4.0.4/dist/echarts.js"></script>
+<script type="text/javascript" src="/webjars/amazeui/2.7.2/dist/js/amazeui.js"></script>
+<script type="text/javascript" src="/assets/js/dataTables.responsive.min.js"></script>
+<script type="text/javascript" src="/assets/js/app.js"></script>
+<script type="text/javascript" src="/assets/js/theme.js"></script>
+<script>
+    var header = $("meta[name='_csrf_header']").attr("content");
+    var token = $("meta[name='_csrf']").attr("content");
+    var imgname;
+    var superpower=""
+    //查询出系统信息
+    setInterval( function () {
+        selsystemallmessages()
+    },20000);
+    function selsystemallmessages(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/adminsystemmanager/selpartmessages",
+            dataType: "json",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (data) {
+                $('#systemmessagecount').html(data.length)
+                if(data.length==0){
+                    $('#systemmessagecontent').html("暂无信息")
+                }else{
+                var str=""
+                for(var i=0;i<data.length;i++){
+                    str+="      <li class=\"tpl-dropdown-menu-notifications\" >\n" +
+                        "                                        <a class=\"tpl-dropdown-menu-notifications-item am-cf\">\n" +
+                        "                                            <div class=\"tpl-dropdown-menu-notifications-title\" style='color: "+data[i].color+"'>\n" +
+                        "                                                <i class="+data[i].icon+"></i>\n" +
+                        "                                                <span> "+data[i].content+"</span>\n" +
+                        "                                            </div>\n" +
+                        "<br/>\n"+
+                        "                                            <div class=\"tpl-dropdown-menu-notifications-title\" style='color: "+data[i].color+"'>\n" +
+                        "                                                "+data[i].sendtime+"\n" +
+                        "                                            </div>\n" +
+                        "                                        </a>\n" +
+                        "                                    </li>"
+                }
+                if(superpower =='SUPERADMIN'){
+                    str+=" <li class=\"tpl-dropdown-menu-messages\">\n" +
+                        "                                    <a onclick='systemmanager()' class=\"tpl-dropdown-menu-messages-item am-cf\">\n" +
+                        "                                        <i class=\"am-icon-circle-o\"></i> 管理列表…\n" +
+                        "                                    </a>\n" +
+                        "                                </li>"
+                }else{
+                    str+=" <li class=\"tpl-dropdown-menu-messages\">\n" +
+                        "                                    <a onclick='lookAllSystemMessages()' class=\"tpl-dropdown-menu-messages-item am-cf\">\n" +
+                        "                                        <i class=\"am-icon-circle-o\"></i> 进入列表…\n" +
+                        "                                    </a>\n" +
+                        "                                </li>"
+                }
+                $('#systemmessagecontent').html(str)
+            }
+            }
+        })
+    }
+    $(function () {
+        getsuperpower()
+    })
+    //得到超级管理员权限
+    function getsuperpower() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/admin/getsuperpower",
+            dataType: "json",
+            data: {
+                user: $('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                superpower=data.power
+                if (superpower == 'SUPERADMIN') {
+                    $(".superadminpower").html("   " +
+                        "                <li class=\"sidebar-nav-link\">\n" +
+                        "                    <a onclick=\"systemmanager()\">\n" +
+                        "                        <i class=\"am-icon-wpforms sidebar-nav-link-logo\"></i> 系统管理\n" +
+                        "                    </a>\n" +
+                        "                </li>")
+                }else{
+                    $(".generaladminpower").html(" " +
+                        "                <li class=\"sidebar-nav-link\">\n" +
+                        "                    <a onclick=\"lookAllSystemMessages()\">\n" +
+                        "                        <i class=\"am-icon-list sidebar-nav-link-logo\"></i> 查看所有系统信息\n" +
+                        "\n" +
+                        "                    </a>\n" +
+                        "                </li>")
+                }
+                selsystemallmessages()
+            }
+        })
+    }
+    if($('#nowname').html() == 'henry'){
+        $('#headuser').html("超级管理员")
+    }
+
+    $(function () {
+        getnowheadimg()
+    })
+    function getnowheadimg(){
+
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/admin/booleanhasheadimg",
+            dataType: "text",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (Data) {
+                if(Data == 'yes'){
+                    $('#headimg').attr("src","../admin/getImg")
+                    $('#myImg').attr("src","../admin/getImg")
+                }else {
+                    // $('#headimg').attr("src","../admin/getImg")
+                    // $('#myImg').attr("src","../admin/getImg")
+                    $('#headimg').attr("src","/images/headinit.png")
+                    $('#myImg').attr("src","/images/headinit.png")
+                }
+
+            }})
+    }
+
+     //得到打算上传图片的名字
+    $('#doc-form-file').on('change', function () {
+        var fileNames = '';
+        $.each(this.files, function () {
+            imgname = this.name
+            fileNames += '<span class="" style="color: #7c7c7c;">' + this.name + '</span> ';
+        });
+        $('#file-list').html(fileNames);
+    });
+    //得到打算上传的图片(回显)
+    function changImg(e){
+        for (var i = 0; i < e.target.files.length; i++) {
+            var file = e.target.files.item(i);
+            if (!(/^image\/.*$/i.test(file.type))) {
+                continue; //不是图片 就跳出这一次循环
+            }
+            //实例化FileReader API
+            var freader = new FileReader();
+            freader.readAsDataURL(file);
+            freader.onload = function(e) {
+                if(imgname !== null ){
+                $("#myImg").attr("src",e.target.result);
+            }else{
+                    getnowheadimg()
+                }
+          }
+        }
+    }
+    //修改商品名称的图片回显
+    function changshopitemImg(e){
+        for (var i = 0; i < e.target.files.length; i++) {
+            var file = e.target.files.item(i);
+            if (!(/^image\/.*$/i.test(file.type))) {
+                continue; //不是图片 就跳出这一次循环
+            }
+            //实例化FileReader API
+            var freader = new FileReader();
+            freader.readAsDataURL(file);
+            freader.onload = function(e) {
+             $("#shopitemimg").attr("src",e.target.result);
+            }
+        }
+    }
+    //在头菜单栏得到未读信息
+    $(function () {
+        getUnReadMsg()
+    })
+
+    setInterval( function () {
+        getUnReadMsg()
+    },10000);
+    function getUnReadMsg(){
+        console.log("当前"+$('#nowname').html())
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/admin/showUnReadmsg",
+            dataType: "json",
+            data: {
+                receiver: $('#nowname').html(),
+                isread: 1
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (data) {
+                var str="";
+                for (var i=0;i<data.length;i++){
+                    //修改更改过的头像
+                    $.ajax({
+                        type: "POST",                           //通过POST方式上传请求
+                        url: "/admin/upmsgheadimg",
+                        dataType: "json",
+                        data: {
+                            sender: data[i].sender
+                        },
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader(header, token);
+                        },
+                        success: function (data) {
+                        }
+                    }
+                    )
+
+                    var sendheadimg=data[i].senderheadimg;
+                    console.log(sendheadimg)
+                    // $('.headimg').attr("src","../admin/getsendrImg.action?nowheadimg="+sendheadimg);
+                    str+=" <li class=\"tpl-dropdown-menu-messages\" onclick='shownowunreadmsg("+data[i].id+",\""+data[i].sender+"\",\""+data[i].message+"\")'>\n" +
+                        "     <a href=\"javascript:;\" class=\"tpl-dropdown-menu-messages-item am-cf\">\n" +
+                        "       <div>\n" +
+                        "           <img src=\"../admin/getsendrImg.action?nowheadimg="+sendheadimg+"\" class='headimg am-comment-avatar'>\n" +
+                        "       </div>\n" +
+                        "       <div class=\"menu-messages-content\" style='text-align: center'>\n" +
+                        "           <div class=\"menu-messages-content-title\">\n" +
+                        "               <i class=\"am-icon-circle-o am-text-success\"></i>\n" +
+                        "               <span>"+data[i].sender+"</span>\n" +
+                        "           </div>\n" +
+                        "           <div class=\"am-text-truncate\">"+data[i].topic+" </div>\n" +
+                        "           <div class=\"menu-messages-content-time\">"+data[i].sendtime+" </div>\n" +
+                        "       </div>\n" +
+                        "     </a>\n" +
+                        "  </li>"
+                }
+
+                if(data.length !==0){
+                    console.log("目前的信息"+data.length)
+                    $('#UnreadMsgNum').html(data.length)
+                    $('#UnreadMsg').html(str)
+                    if(data.length >=2){
+                        $('#UnreadMsg').attr("style","height:220px;overflow:auto")
+                    }else{
+                        $('#UnreadMsg').attr("style","height:110px")
+                    }
+                }else {
+                    $('#UnreadMsgNum').html("")
+                    $('#UnreadMsg').html("<span style='color: gray'>目前你没有收到任何信息</span>")
+                }
+            }
+        })
+    }
+
+    //展现头菜单栏未读信息的具体信息并且点击后改变状态
+    function shownowunreadmsg(id,sender,message){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/admin/changeUnreadToRead",
+            dataType: "json",
+            data: {
+                id: id
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                $('#senderinfo').html(sender)
+                $('#msginfo').html(message)
+
+                $('#doc-showunreadmsg').modal({
+                    relatedTarget: this,
+                    closeOnConfirm: false,
+                    closeViaDimmer: false,
+                    onConfirm: function (e) {},})
+                getUnReadMsg()
+                getUnReadMsg()
+                showAllMsg()
+            }
+        })
+
+    }
+
+    //登出
+    $('#logout').click(function logout() {
+
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/end/logout",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (errms) {
+                window.location.href = '/'
+            }
+        })
+    })
+    //打开更换头像模态框并且上传
+    function openupadminheadimg(){
+        $('#doc-upadminheadimg').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+                //图片上传ajax
+                var s = $('#doc-form-file')[0].files[0];
+                var formData = new FormData();
+                formData.append("file_data", s);
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/admin/getfileup",
+                    dataType: "text",
+                    processData: false,
+                    contentType: false,
+                    data: formData,
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (Data) {
+                        $("#doc-upadminheadimg").modal('close');
+                        $("#myImg").attr("src","/images/headinit.png");
+                        $('#headimg').attr("src","../admin/getImg.action?imgPath="+imgname)
+                    }})
+            },onCancel: function (e) {
+            }})
+    }
+    //进入admin界面默认加载首页
+    $(function () {
+        index()
+    })
+    // 加载首页
+    function index() {
+        $('#manageuserpower').load("/admin/index")
+        $('#index').addClass("active")
+        $('#powermanager').removeClass("active")
+        $('#relate').removeClass("active")
+        $('#receive').removeClass("active")
+        $('#send').removeClass("active")
+    }
+    //加载出权限管理
+    function powermanager() {
+        $('#manageuserpower').load("/admin/managepower")
+        $('#index').removeClass("active")
+        $('#powermanager').addClass("active")
+        $('#relate').removeClass("active")
+        $('#receive').removeClass("active")
+        $('#send').removeClass("active")
+    }
+    //加载出信息交互的发送
+    function messagesend() {
+        $('#manageuserpower').load("/admin/messagesend")
+        $('#index').removeClass("active")
+        $('#powermanager').removeClass("active")
+        $('#relate').addClass("active")
+        $('#receive').removeClass("active")
+        $('#send').addClass("active")
+    }
+    //加载出信息交互的接收
+    function messagereceive() {
+        $('#manageuserpower').load("/admin/messagereceive")
+        $('#index').removeClass("active")
+        $('#powermanager').removeClass("active")
+        $('#relate').addClass("active")
+        $('#receive').addClass("active")
+        $('#send').removeClass("active")
+    }
+    //商品信息管理
+    function shopitemmanager() {
+        $('#manageuserpower').load("/admin/managershopitem")
+    }
+    //系统管理，包括系统的广告信息，系统的广告推送
+    function systemmanager() {
+        $('#manageuserpower').load("/admin/managersystem")
+    }
+    //展现查看所有系统信息列表页
+    function lookAllSystemMessages() {
+        $('#manageuserpower').load("/admin/showsystemmessages")
+
+    }
+</script>
+</body>
+</html>

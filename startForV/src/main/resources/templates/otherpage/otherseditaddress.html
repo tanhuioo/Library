@@ -1,0 +1,141 @@
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9">
+            <div class="page-header-heading"><span class="am-icon-home sidebar-nav-link-logo"></span>快递信息管理</div>
+            <p class="page-header-description">你可以在订购的时候选择这里的地址</p>
+        </div>
+        <div class="am-u-lg-3 tpl-index-settings-button">
+            <button type="button" class="page-header-button am-animation-scale-down" onclick="openaddexpressinfo()"><span class="am-icon-paint-brush"></span>添加快递信息</button>
+        </div>
+    </div>
+</div>
+
+<div class="row-content am-cf">
+    <div class="widget am-cf widget-body-lg am-animation-slide-left" style="height: 650px;overflow: auto" id="tablecontent">
+        <table width="100%" class="am-table am-table-compact am-text-nowrap tpl-table-black  am-table-striped am-table-hover" id="expresstable">
+            <thead id="thead">
+            <tr>
+                <td>送达者</td>
+                <td>电话</td>
+                <td>地址</td>
+                <td>操作</td>
+            </tr>
+            </thead>
+            <tbody id="expressinfo">
+            <!-- more data -->
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    //初始化
+    function init(){
+      $('#addname').val("")
+      $('#addtellphone').val("")
+      $('#addaddress').val("")
+    }
+    //快速显示地址
+    $(function () {
+        showexpressinfo()
+    })
+    function showexpressinfo() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/otherexpress/selallexpressinfo",
+            data: {
+                buyer:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=""
+                if(data.length == 0){
+                    str+="<div style='font-size: 50px'>请添加你要快速使用的地址</div>"
+                    $('#expressinfo').html(str)
+                }else{
+
+                for(var i=0;i<data.length;i++){
+                    str += "<tr>"
+                        + "<td>" + data[i].transfername + "</td>"
+                        +"<td >" + data[i].tellphone + "</td>"
+                        + "<td>" + data[i].address + "</td>"
+                        + "<td><i class=\"am-icon-edit operateicon\" style='cursor:pointer;color: brown' onclick='openupexpressinfo(" +
+                        "" + data[i].id + "," +
+                        "\"" + data[i].tellphone + "\"," +
+                        "\"" + data[i].address + "\"," +
+                        "\"" + data[i].transfername + "\")'>" + "修改" + "</i>"
+                        + "<i class=\"am-icon-trash operateicon\" style='cursor:pointer;color: #111854' onclick='delexpressinfo(" + data[i].id + ")'>" + "删除" + "</i></td></tr>"
+                }
+                $('#expressinfo').html(str)
+            }
+            }
+        })
+    }
+    //打开添加快递信息弹窗
+    function openaddexpressinfo() {
+        $('#doc-addexpressinfo').modal({
+            relatedTarget: this,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/otherexpress/insertexpressinfo",
+                    data: {
+                        buyer:$('#nowname').html(),
+                        transfername: $('#addexpressname').val(),
+                        tellphone: $('#addexpresstellphone').val(),
+                        address: $('#addexpressaddress').val()
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    }, success: function (data) {
+                        showexpressinfo()
+                        init()
+                    }
+                })
+            }
+        })
+    }
+    //删除快递信息
+    function delexpressinfo(id) {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/otherexpress/delexpressinfo",
+            data: {
+                id:id
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                showexpressinfo()
+            }
+        })
+    }
+    //修改快递信息
+    function openupexpressinfo(id,tellphone,address,transfername) {
+        $('#upexpressname').val(transfername)
+        $('#upexpressphone').val(tellphone)
+        $('#upexpressaddress').val(address)
+        $('#doc-upexpressinfo').modal({
+            relatedTarget: this,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/otherexpress/upexpressinfo",
+                    data: {
+                        id:id,
+                        transfername: $('#upexpressname').val(),
+                        tellphone : $('#upexpressphone').val(),
+                        address: $('#upexpressaddress').val()
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    }, success: function (data) {
+                        showexpressinfo()
+                    }
+                })
+            }
+        })
+    }
+</script>

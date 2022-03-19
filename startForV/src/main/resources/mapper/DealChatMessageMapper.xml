@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bysj.qiu.dao.DealChatMessageDao">
+<!--    往数据库里插入发送的信息-->
+    <insert id="sendMessage">
+        insert into  tb_chat_message(sender,receiver,topic,message,isread,senderheadimg) values (#{sender},#{receiver},#{topic},#{message},1,#{senderheadimg})
+    </insert>
+<!--    展现出接收来的信息-->
+    <select id="showUnReadMsg" resultType="com.bysj.qiu.pojo.ChatMessage">
+        select * from tb_chat_message where receiver=#{receiver} and isread=#{isread} ORDER BY sendtime DESC
+    </select>
+<!--    将一条信息的未读状态改为已读状态-->
+    <update id="changeUnreadToRead">
+        update  tb_chat_message  set isread=0 where id=#{id}
+    </update>
+<!--    获取所有接收来的信息，没有未读已读之分-->
+    <select id="showAllMsg" resultType="com.bysj.qiu.pojo.ChatMessage">
+         select * from tb_chat_message where receiver=#{receiver} ORDER BY sendtime DESC
+    </select>
+
+
+<!--    查询出这条消息中发送者的头像-->
+    <select id="selSenderHeadimg" resultType="com.bysj.qiu.pojo.Secret">
+         select * from  tb_secret_admin  where user=#{sender}
+    </select>
+<!--    当用户头像更新的时候，聊天信息队列里的头像信息也要更新-->
+    <update id="changeMsgSenderHeadimg">
+        update  tb_chat_message  set senderheadimg=#{senderheadimg} where sender=#{sender}
+    </update>
+</mapper>

@@ -1,0 +1,372 @@
+
+
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9">
+            <div class="page-header-heading"><span class="am-icon-home sidebar-nav-link-logo"></span>账户管理</div>
+            <p class="page-header-description">展示所有我的信息</p>
+            <p class="page-header-description">账户管理</p>
+        </div>
+        <div class="widget-function am-fr">
+            <button type="button" class="am-btn am-btn-secondary am-btn-lg" onclick="openchangepoassword()">修改密码或(与)账户</button>
+        </div>
+    </div>
+</div>
+
+<div class="row-content am-cf">
+    <div class="widget am-cf am-animation-slide-left">
+        <div class="row-content am-cf">
+            <div class="row  am-cf">
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                    <div class="widget widget-primary am-cf">
+                        <div class="widget-statistic-header">
+                            <div  style="font-size: 35px">当前你的账户余额</div>
+                        </div>
+                        <div class="widget-statistic-body">
+                            <div class="widget-statistic-value">
+                                ￥<span id="balance">0</span>
+                                <button type="button" class="am-btn am-btn-secondary am-btn-lg" onclick="openaddbalance()">充值</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                    <div class="widget widget-purple am-cf">
+                        <div class="widget-statistic-header">
+                            <div  style="font-size: 35px">购买过最多的商品</div>
+                        </div>
+                        <div class="widget-statistic-body">
+                            <div class="widget-statistic-value">
+                                <span id="buymoreitem"></span>
+                                共有<span id="buymoreitemcount"></span>次
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="am-u-sm-12 am-u-md-6 am-u-lg-4">
+                    <div class="widget widget-primary am-cf">
+                        <div class="widget-statistic-header">
+                            <div  style="font-size: 35px">你总共购买过的次数</div>
+                        </div>
+                        <div class="widget-statistic-body">
+                            <div class="widget-statistic-value">
+                                <span id="buyallcount"></span>次
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+    <div class="widget am-cf am-animation-slide-left"  style="height: 400px;overflow: auto" >
+        <div class="row-content am-cf">
+            <div class="row-content am-cf">
+                <div class="row  am-cf">
+                    <div class="widget am-cf widget-body-lg am-animation-slide-left">
+                        <div class="am-scrollable-horizontal " >
+                            <table width="100%"  class="am-table am-table-striped am-table-hover" style="border: 4px solid #33C5D2" >
+                                <thead>
+                                <tr>
+                                    <th>消费原因</th>
+                                    <th>金额流动</th>
+                                    <th>日期</th>
+                                </tr>
+                                </thead>
+                                <tbody id="billinfo">
+                                </tbody>
+                            </table>
+                            <div id="tabledownbtn" style="margin-left: 45%;margin-right: 45%">
+                                     <button type="button"  class="am-btn am-btn-default am-btn-lg"  onclick="showmore()">加载更多</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var nowbillcount=7
+    var billallcount
+    //获取当前账单自加载
+    function init(){
+        $('#beforebuyneedinputpassword').val("")
+        $('#needaddbalanceval').val("")
+    }
+    $(function () {
+        getbillinfo()
+    })
+    //得到账单信息
+    function getbillinfo(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/getbillinfo",
+            data: {
+                user:$('#nowname').html(),
+                showmore:nowbillcount
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=""
+                for(var i=0;i<data.length;i++){
+                        if(data[i].isbuyoradd==0){
+                            //消费账单
+                            str+="<tr><td >" + data[i].whatdoing + "</td>"
+                                + "<td style='color: green'>" +"-￥"+data[i].flowmoney + "</td>"
+                                + "<td>" + data[i].donetime + "</td>"
+                                +"</td></tr>"
+                        }else {
+                            //充值账单
+                            str+="<tr><td >" + data[i].whatdoing + "</td>"
+                                + "<td style='color: red'>" +"+￥"+data[i].flowmoney + "</td>"
+                                + "<td>" + data[i].donetime + "</td>"
+                                +"</td></tr>"
+                        }
+                }
+                $("#billinfo").html(str)
+            }}
+            )
+    }
+    //打开充值弹窗
+    function openaddbalance() {
+        $('#doc-addbalance').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer: false,
+        })
+    }
+    //充值支付密码输入弹窗
+    function addbalanceinputpaypassword() {
+        if($('#needaddbalanceval').val()==null || $('#needaddbalanceval').val()==""){
+            $('#alertcontent').html("充值金额不能为空")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else {
+            $('#inpupaybtn').html(" <button type=\"button\" onclick=\"realaddbalance()\" class=\"am-btn am-btn-default\">确定</button>")
+            $('#doc-inpupay').modal({
+                relatedTarget: this,
+                closeOnConfirm: false,
+                closeViaDimmer:false,
+            })
+        }
+    }
+    //点击按钮充值成功
+    function realaddbalance() {
+        if($('#beforebuyneedinputpassword').val()==null || $('#beforebuyneedinputpassword').val()==''){
+            $('#alertcontent').html("必须输入支付密码")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if(paypassword !==$('#beforebuyneedinputpassword').val()){
+            $('#alertcontent').html("支付密码错误")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else{
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/addbalance",
+            data: {
+                user:$('#nowname').html(),
+                oldbalance: $('#balance').html(),
+                addbalance: $('#needaddbalanceval').val()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/other/addbillinfo",
+                    data: {
+                        user:$('#nowname').html(),
+                        flowmoney:$('#needaddbalanceval').val(),
+                        whatdoing: "充值",
+                        isbuyoradd:1
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    }, success: function (data) {
+                        init()
+                        getbillinfo()
+                    }})
+                getuserbuyinfo()
+                $('#alertcontent').html("充值成功")
+                $("#doc-inpupay").modal('close');
+                $("#doc-addbalance").modal('close');
+                $('#generyalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer:false,
+                    onConfirm: function (e) {
+                    }})
+            }
+        })
+    }
+    }
+
+    //按下加载更多后，可以看到更多的信息
+    function showmore(){
+        nowbillcount=nowbillcount+7
+        getbillinfo()
+        if(nowbillcount >= billallcount){
+            $('#tabledownbtn').html(" <button type=\"button\"  class=\"am-btn am-btn-default am-btn-lg\"  onclick=\"showback()\">缩回</button>")
+        }
+    }
+    function showback(){
+        nowbillcount=7
+        getbillinfo()
+        $('#tabledownbtn').html("<button type=\"button\"  class=\"am-btn am-btn-default am-btn-lg\"  onclick=\"showmore()\">加载更多</button>")
+    }
+
+    //获取当前余额自加载
+    $(function () {
+        getuserbuyinfo()
+    })
+    function getuserbuyinfo(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/getuserbuyinfo",
+            data: {
+                buyuser:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                if(data.balance==null||data.balance==""){
+                    $('#balance').html(0)
+                }else{
+                    $('#balance').html(data.balance)
+                }
+                $('#buyallcount').html(data.buynum)
+
+            }
+        })
+    }
+    //获取账单的总数量
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/other/getbillallcount",
+        data: {
+            user:$('#nowname').html()
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            billallcount=data
+        }
+    })
+    //获取当前购买最多的果蔬以及他的数量
+    $(function () {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/getnumfirstforv",
+            data: {
+                user:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                $('#buymoreitem').html(data.buyshopitemname)
+                $('#buymoreitemcount').html(data.buycount)
+            }
+        })
+
+    })
+    //打开更新密码或(与)账户的弹窗
+    function openchangepoassword() {
+        $('#olduser').val($('#nowname').html())
+        $('#doc-uppassword').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer: false,
+        })
+    }
+    //点击确认修改密码或(与)账户
+    function realuppasswordanduser() {
+        if($('#olduser').val()==null||$('#olduser').val()==""){
+            $('#alertcontent').html("输入的用户名不能为空")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if($('#nowpassword').val()==null||$('#nowpassword').val()==""){
+            $('#alertcontent').html("输入的老密码不能为空")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if($('#newpassword').val()==null||$('#newpassword').val()==""){
+            $('#alertcontent').html("输入的新密码不能为空")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else{
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/isrightpassword",
+            datatype: "text",
+            data: {
+                user:$('#nowname').html(),
+                password:$('#nowpassword').val()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                if(data=="err"){
+                    $('#alertcontent').html("密码输入错误")
+                    $('#generyalert').modal({
+                        relatedTarget: this,
+                        closeViaDimmer:false,
+                        onConfirm: function (e) {
+                        }})
+                }else{
+                    //修改密码或(与)账户
+                    $.ajax({
+                        type: "POST",                           //通过POST方式上传请求
+                        url: "/other/changeuserpasswordanduser",
+                        datatype: "json",
+                        data: {
+                            password:$('#newpassword').val(),
+                            newuser:$('#olduser').val(),
+                            olduser:$('#nowname').html()
+                        },
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader(header, token);
+                        }, success: function (data) {
+                            $('#alertcontent').html("修改成功，但是要重新登录才能生效")
+                            $('#generyalert').modal({
+                                relatedTarget: this,
+                                closeViaDimmer:false,
+                                onConfirm: function (e) {
+                                    $.ajax({
+                                        type: "POST",                           //通过POST方式上传请求
+                                        url: "/end/logout",
+                                        data: {},
+                                        beforeSend: function (xhr) {
+                                            xhr.setRequestHeader(header, token);
+                                        }, success: function (data) {
+                                            window.location.href = '/'
+                                        }
+                                    })
+                                }})
+                        }
+                    })
+                }
+            }
+        })
+    }
+    }
+</script>

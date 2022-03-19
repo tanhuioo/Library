@@ -1,0 +1,754 @@
+<!--这是子字页面，在父页面adminfirst里用load()方法加载进内容区域的-->
+<!--此子页面用于展现权限管理-->
+
+<!--头-->
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9" >
+            <div class="page-header-heading"><span class="am-icon-key sidebar-nav-link-logo"></span> 用户管理 <small>开始你的管理员操作</small></div>
+            <p class="page-header-description">目前你可以对普通用户权限做一个。</p>
+            <p class="page-header-description">操作，后续也可以接收普通用户传过来的信息</p>
+        </div>
+        <div class="am-u-lg-3 tpl-index-settings-button">
+            <button type="button" class="page-header-button am-animation-scale-down" onclick="openadmininfo()"><span class="am-icon-paint-brush"></span>设置自身权限</button>
+        </div>
+    </div>
+</div>
+
+<!--内容-->
+<div class="row-content am-cf">
+    <div class="widget am-cf widget-body-lg am-animation-slide-left">
+            <div class="am-scrollable-horizontal ">
+                <table width="100%"  class="am-table am-table-striped am-table-hover" id="example-r">
+                    <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>密码</th>
+                        <th>权限</th>
+                        <th>父用户</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="userinfo">
+                    <!-- more data -->
+                    </tbody>
+                </table>
+                <div id="pagecount">
+
+                </div>
+            </div>
+    </div>
+
+
+</div>
+
+<script>
+
+// 初始化
+function init() {
+        $('#updapassword').val('');
+        $('#updauser').val('');
+        $('#updarepassword').val('');
+        $('#insertuser').val('');
+        $('#insertpassword').val('');
+        $('#insertrepassword').val('');
+        $('#updaotheruser').val('')
+        $('#updaotherpassword').val('')
+}
+// 获得admin的info
+$(function () {
+    seladmin()
+})
+var backupda='';
+
+// 获得admin的info
+function seladmin() {
+             getsuperpower()
+           // 获得admin的名字
+           var nowname=$('#nowname').html()
+           $.ajax({
+               type: "POST",                           //通过POST方式上传请求
+               url: "/admin/seladmininfo",
+               dataType: "json",
+               data: {},
+               beforeSend: function (xhr) {
+                   xhr.setRequestHeader(header, token);
+               }, success: function (data) {
+                    console.log(data)
+                   var str = '';
+                   if (superpower == 'SUPERADMIN') {
+                       for (var i = 0; i < data.length; i++) {
+                           if(data[i].user == nowname) {
+                               backupda = data[i].user
+                               data[i].user = data[i].user + "(目前用户)"
+                               str += "<tr><td >" + data[i].user + "</td>"
+                                   + "<td>" + data[i].password + "</td>"
+                                   + "<td>" + data[i].fatheruser + "</td>"
+                                   + "<td><i class=\"am-icon-edit operateicon\" style='cursor:pointer;color: #c062b9' onclick='upda2(" + data[i].id + ",\"" + backupda + "\",\"" + data[i].password + "\",\"" + nowname + "\")'>" + "修改" + "</i>"
+                                   + "<i class=\"am-icon-plus operateicon\" style='cursor:pointer;color: #111854' onclick='insert()'>" + "增加管理员" + "</i>" +
+                                   "</td></tr>"
+                           }else{
+
+                               str += "<tr><td >" + data[i].user + "</td>"
+                                   + "<td>" + data[i].password + "</td>"
+                                   + "<td>" + data[i].fatheruser + "</td>"
+                                   + "<td><i class=\"am-icon-edit operateicon\" style='cursor:pointer;color: #c062b9' onclick='upda(" + data[i].id + ",\"" + data[i].user + "\",\"" + data[i].password + "\")'>" + "修改" + "</i>"
+                                   +"<i class=\"am-icon-trash operateicon\" style='cursor:pointer;color: #c0000f' onclick='deladmin(" + data[i].id + ",\"" + data[i].user + "\")'>" + "删除管理员" + "</i></td></tr>"
+                           }
+                       }
+                       $('#admininfo').html(str)
+                   } else {
+
+                       for (var i = 0; i < data.length; i++) {
+                           if (nowname == data[i].user) {
+                               backupda = data[i].user
+                               data[i].user = data[i].user + "(目前用户)"
+                               str += "<tr><td >" + data[i].user + "</td>"
+                                   + "<td>" + data[i].password + "</td>"
+                                   + "<td>" + data[i].fatheruser + "</td>"
+                                   + "<td><i class=\"am-icon-edit operateicon\" style='cursor:pointer;color: #c062b9' onclick='upda2(" + data[i].id + ",\"" + backupda + "\",\"" + data[i].password + "\",\"" + nowname + "\")'>" + "修改" + "</i>"
+                                   + "<i class=\"am-icon-plus operateicon\" style='cursor:pointer;color: #111854' onclick='insert()'>" + "增加管理员" + "</i>" +
+                                   "</td></tr>"
+                           } else if (data[i].fatheruser == $('#nowname').html()) {
+                               str += "<tr><td >" + data[i].user + "</td>"
+                                   + "<td>" + data[i].password + "</td>"
+                                   + "<td>" + data[i].fatheruser + "</td>"
+                                   + "<td><i class=\"am-icon-edit operateicon\" style='cursor:pointer;color: #c062b9' onclick='upda(" + data[i].id + ",\"" + data[i].user + "\",\"" + data[i].password + "\")'>" + "修改" + "</i>"
+                                  + "<i class=\"am-icon-trash operateicon\" style='cursor:pointer;color: #c0000f' onclick='deladmin(" + data[i].id + ",\"" + data[i].user + "\")'>" + "删除管理员" + "</i></td></tr>"
+                           } else {
+                               str += "<tr><td >" + data[i].user + "</td>"
+                                   + "<td>*******</td>"
+                                   + "<td>" + data[i].fatheruser + "</td>"
+                                   + "<td>没有操作权限</td></tr>"
+
+                           }
+                       }
+                       $('#admininfo').html(str)
+
+                   }
+               }
+           })
+       }
+//打开admin权限管理模态框
+function openadmininfo() {
+        $('#doc-admininfo').modal({
+            relatedTarget: this,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+            },onCancel: function (e) {
+            }})
+    }
+
+//    打开新的admin权限更新模态框
+function upda2(id,user,password,nowname) {
+    $('#updausernow').val(user)
+    $('#updapasswordnow').val(password)
+    $('#doc-admininfoupdanow').modal({
+        relatedTarget: this,
+        closeOnConfirm: false,
+        closeViaDimmer:false,
+        onConfirm: function (e) {
+            if($('#updausernow').val() == ''){
+                $('#alert').html('用户名不能为空')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+            }
+            else if($('#updapasswordnow').val() == ''){
+                $('#alert').html('密码不能为空')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+            }
+            else {
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/admin/booleanupdaadminexist",
+                    dataType: "text",
+                    data: {
+                        updauser: $('#updausernow').val(),
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (bol) {
+                        console.log("i am here"+bol)
+                        if(bol == 'dead' && $('#updausernow').val() !=user ){
+                            $('#alert').html('用户已经存在')
+                            $('#startalert').modal({
+                                relatedTarget: this,
+                                closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                                onConfirm: function () {
+                                },
+                            })
+                        }else{
+                            upreal2(id,user,password,nowname)
+                        }
+                    },
+                    error: function () {
+                        console.log("static.error")
+                    }
+                })
+            }
+        },onCancel: function (e) {
+
+        }})
+
+}
+//打开admin权限更新模态框
+function upda(id,user,password,nowname) {
+    $('#updauser').val(user)
+    $('#updapassword').val(password)
+    $('#doc-admininfoupda').modal({
+        relatedTarget: this,
+        closeOnConfirm: false,
+        closeViaDimmer:false,
+        onConfirm: function (e) {
+            if($('#updauser').val() == ''){
+                $('#alert').html('用户名不能为空')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+            }
+            else if($('#updapassword').val() == ''){
+                $('#alert').html('密码不能为空')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+            }
+           else {
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/admin/booleanupdaadminexist",
+                    dataType: "text",
+                    data: {
+                        updauser: $('#updauser').val(),
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (bol) {
+                        console.log("i am here"+bol)
+                        if(bol == 'dead' && $('#updauser').val() !=user ){
+                            $('#alert').html('用户已经存在')
+                            $('#startalert').modal({
+                                relatedTarget: this,
+                                closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                                onConfirm: function () {
+                                },
+                            })
+                        }else{
+                            upreal(id,user,password,nowname)
+                        }
+                    },
+                    error: function () {
+                        console.log("static.error")
+                    }
+                })
+            }
+        },onCancel: function (e) {
+
+        }})
+
+}
+//打开增加admin模态框
+function insert() {
+    $('#doc-admininsert').modal({
+        relatedTarget: this,
+        closeOnConfirm: false,
+        closeViaDimmer:false,
+        onConfirm: function (e) {
+            if($('#insertuser').val() == ''){
+                $('#alert').html('用户名不能为空')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+            }
+            else if($('#insertpassword').val() == ''){
+                $('#alert').html('密码不能为空')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+            }
+            else if($('#insertrepassword').val() == ''){
+                $('#alert').html('需要重复输入')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+            }
+            else if($('#insertpassword').val() !== $('#insertrepassword').val()){
+                $('#alert').html('重复输入的密码需要一致')
+                $('#startalert').modal({
+                    relatedTarget: this,
+                    closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                    onConfirm: function () {
+                    },
+                })
+        }else{
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/admin/booleaninsertadminexist",
+                    dataType: "text",
+                    data: {
+                        insertuser: $('#insertuser').val(),
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (bol) {
+                        console.log("i am here"+bol)
+                        if(bol == 'dead'){
+                            $('#alert').html('用户已经存在')
+                            $('#startalert').modal({
+                                relatedTarget: this,
+                                closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                                onConfirm: function () {
+                                },
+                            })
+                        }else{
+                            insertreal()
+                        }
+                    },
+                    error: function () {
+                        console.log("static.error")
+                    }
+                })
+            }
+    }})
+}
+//增加admin操作
+function insertreal() {
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/admin/insertadmin",
+        dataType: "json",
+        data: {
+            insertuser: $('#insertuser').val(),
+            insertpassword: $('#insertpassword').val(),
+            insertfatheruser: $('#nowname').html()
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            $('#alert').html('添加成功')
+            $('#startalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                onConfirm: function () {
+                }
+            })
+            $("#doc-admininsert").modal('close');
+            seladmin()
+            init()
+        }
+    })
+}
+//新修改admin操作
+function upreal2(id,user,password,nowname) {
+
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/admin/updaadmininfo",
+        dataType: "json",
+        data: {
+            id: id,
+            updauser: $('#updausernow').val(),
+            updapassword: $('#updapasswordnow').val()
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            $('#alert').html('已经更新信息，请重新登录')
+            $('#startalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                onConfirm: function () {
+                    $.ajax({
+                        type: "POST",                           //通过POST方式上传请求
+                        url: "/end/logout",
+                        data: {},
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader(header, token);
+                        }, success: function (errms) {
+                            window.location.href = '/'
+                        }
+                    })
+                }
+            })
+            $("#doc-admininfoupdanow").modal('close');
+            seladmin()
+            init()
+        }
+    })
+
+}
+//修改admin操作
+function upreal(id,user,password,nowname) {
+
+    //普通用户到管理员
+    if($('#choicebyadmin').val() == 'USER'){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/admin/deletByidToAdmin",
+            dataType: "json",
+            data: {
+                id: id,
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                console.log("ok1")
+                runpage(nowpage)
+                getpage()
+                seladmin()
+            }
+        })
+////////////////////////////////////////////////////
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/regist",
+            dataType: "json",
+            data: {
+                userregist: $('#updauser').val(),
+                passwordregist: $('#updapassword').val(),
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                runpage(nowpage)
+                getpage()
+                seladmin()
+            }
+        })
+    }
+
+
+
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/admin/updaadmininfo",
+        dataType: "json",
+        data: {
+            id: id,
+            updauser: $('#updauser').val(),
+            updapassword: $('#updapassword').val()
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            $('#alert').html('已经更新信息，请重新登录')
+            $('#startalert').modal({
+                relatedTarget: this,
+                closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                onConfirm: function () {
+                    $.ajax({
+                        type: "POST",                           //通过POST方式上传请求
+                        url: "/end/logout",
+                        data: {},
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader(header, token);
+                        }, success: function (errms) {
+                            window.location.href = '/'
+                        }
+                    })
+                }
+            })
+            $("#doc-admininfoupda").modal('close');
+            seladmin()
+            init()
+        }
+    })
+
+}
+//动态获取页数
+var nowpage;
+var booleanisend;
+var allpage;
+var nowusername
+$(function () {
+    getpage()
+})
+function getpage(){
+$.ajax({
+    type: "POST",                           //通过POST方式上传请求
+    url: "/admin/selothercount",
+    dataType: "json",
+    data: {},
+    beforeSend: function (xhr) {
+        xhr.setRequestHeader(header, token);
+    }, success: function (data) {
+        console.log("现在的data的值"+data)
+        allpage=data
+        booleanisend=data
+        str=''
+        str+="<ul class=\"am-pagination\"><li ><a href=\"#\" onclick='backpage(" + nowpage + ")'>&laquo;</a></li>"
+        for(var i=1;i<data+1;i++){
+            str+="<li id='"+i+"'><a href=\"#\" onclick='runpage(" + i + ")'>"+i+"</a></li>"
+        }
+        str+=" <li><a href=\"#\" onclick='nextpage(" + nowpage + ")'>&raquo;</a></li></ul>"
+        $('#pagecount').html(str)
+        $("#"+nowpage+"").addClass("am-active")
+
+
+    }
+})
+}
+//下一页
+function nextpage(i){
+    $("li").removeClass("am-active")
+    $("#"+nowpage+"").addClass("am-active")
+    if(nowpage <booleanisend){
+        nowpage=nowpage+1
+        $("#"+nowpage+"").addClass("am-active")
+        runpage(nowpage)
+        console.log("当前页"+nowpage)
+
+
+    }
+    // console.log("当前页数"+ohfuck)
+}
+//上一页
+function backpage(i){
+    $("li").removeClass("am-active")
+    $("#"+nowpage+"").addClass("am-active")
+    if(nowpage>1) {
+        nowpage = nowpage - 1
+        runpage(nowpage)
+        $("#"+nowpage+"").addClass("am-active")
+
+    }
+}
+//默认一开始出来的是第一页
+$(function () {
+    runpage(1)
+
+})
+//获得普通用户的信息
+function runpage(i) {
+    $("li").removeClass("am-active")
+    nowpage=i
+    $("#"+nowpage+"").addClass("am-active")
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/admin/selotheruser",
+        dataType: "json",
+        data: {
+            nowpage: i
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            if(data.length==0){
+                backpage()
+            }
+            var str = '';
+            for (var i = 0; i < data.length; i++) {
+                str += "<tr><td >" + data[i].user + "</td>"
+                    + "<td>" + data[i].password + "</td>"
+                    + "<td>" + data[i].power + "</td>"
+                    + "<td>" + data[i].fatheruser + "</td>"
+                    + "<td><i class=\"am-icon-edit operateicon\" style='cursor:pointer;color: brown' onclick='updatouser(" +
+                    "" + data[i].id + "," +
+                    "\"" + data[i].user + "\"," +
+                    "\"" + data[i].password + "\"," +
+                    "\"" + data[i].power + "\")'>" + "修改" + "</i>"
+                    + "<i class=\"am-icon-trash operateicon\" style='cursor:pointer;color: #111854' onclick='del(" + data[i].id + ")'>" + "删除" + "</i></td></tr>"
+            }
+            $('#userinfo').html(str)
+        }
+    })
+}
+//删除普通用户
+function del(id){
+
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/admin/deletbyidtouser",
+        dataType: "json",
+        data: {
+            id: id
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            //刷新页数
+            getpage()
+            //刷新大表格
+            runpage(nowpage)
+
+        }
+    })
+}
+//删除admin用户
+function deladmin(id,user){
+    console.log("admin"+id)
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/admin/deletByidToAdmin",
+        dataType: "json",
+        data: {
+            id: id,
+            user: user
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            //刷新页数
+            getpage()
+            //刷新大表格
+            seladmin()
+
+        }
+    })
+
+
+}
+var nowid
+//打开修改普通用户模态框
+function updatouser(id,username,password,power) {
+    nowid=id
+        nowusername=username
+         console.log(nowusername)
+         $('#updaotheruser').val(username),
+        $('#updaotherpassword').val(password),
+        $('#doc-upuserinfo').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer: false,
+            onConfirm: function (e) {
+                if($('#updaotheruser').val() == ''){
+                    $('#alert').html('用户名不能为空')
+                    $('#startalert').modal({
+                        relatedTarget: this,
+                        closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                        onConfirm: function () {
+                        },
+                    })
+                }
+                else if($('#updaotherpassword').val() == ''){
+                    $('#alert').html('密码不能为空')
+                    $('#startalert').modal({
+                        relatedTarget: this,
+                        closeViaDimmer: false,//点击遮罩层时不关闭 Modal
+                        onConfirm: function () {
+                        },
+                    })
+                }else {
+                    $.ajax({
+                        type: "POST",                           //通过POST方式上传请求
+                        url: "/admin/booleanotheruserexit",
+                        dataType: "text",
+                        data: {
+                            updauser: $('#updaotheruser').val(),
+                        },
+                        beforeSend: function (xhr) {
+                            xhr.setRequestHeader(header, token);
+                        }, success: function (data) {
+                            if (data == 'exit' && $('#updaotheruser').val() !== nowusername) {
+                                $('#alert').html('要更新的这个用户已经存在')
+                                $('#startalert').modal({
+                                    relatedTarget: this,
+                                    closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                                    onConfirm: function () {
+
+                                    }
+                                })
+                            } else {
+                                //普通用户到管理员
+                                if($('#choice').val() == 'ADMIN'){
+                                    $.ajax({
+                                        type: "POST",                           //通过POST方式上传请求
+                                        url: "/admin/deletbyidtouser",
+                                        dataType: "json",
+                                        data: {
+                                            id: nowid,
+                                        },
+                                        beforeSend: function (xhr) {
+                                            xhr.setRequestHeader(header, token);
+                                        }, success: function (data) {
+                                            console.log("ok1")
+                                            runpage(nowpage)
+                                            getpage()
+                                            seladmin()
+                                        }
+                                    })
+
+                                    $.ajax({
+                                        type: "POST",                           //通过POST方式上传请求
+                                        url: "/admin/insertadmin",
+                                        dataType: "json",
+                                        data: {
+                                            insertuser: $('#updaotheruser').val(),
+                                            insertpassword: $('#updaotherpassword').val(),
+                                            insertfatheruser: $('#nowname').html()
+                                        },
+                                        beforeSend: function (xhr) {
+                                            xhr.setRequestHeader(header, token);
+                                        }, success: function (data) {
+                                            console.log("ok2")
+                                        }
+                                    })
+                                }
+
+                                $.ajax({
+                                    type: "POST",                           //通过POST方式上传请求
+                                    url: "/admin/updaotheruserbyid",
+                                    dataType: "json",
+                                    data: {
+                                        id: nowid,
+                                        updauser: $('#updaotheruser').val(),
+                                        updapassword: $('#updaotherpassword').val()
+                                    },
+                                    beforeSend: function (xhr) {
+                                        xhr.setRequestHeader(header, token);
+                                    }, success: function (data) {
+                                        $('#alert').html('更新信息成功')
+                                        $('#startalert').modal({
+                                            relatedTarget: this,
+                                            closeViaDimmer: false,//点击遮罩层时关闭 Modal
+                                            onConfirm: function () {
+                                                $("#doc-upuserinfo").modal('close');
+                                            }
+                                        })
+                                        //刷新页数
+                                        getpage()
+                                        //刷新大表格
+                                        runpage(nowpage)
+
+
+                                    }
+                                })
+                            }
+
+                        }
+                    })
+                }
+
+               ////////////////////////////
+
+            }
+        })
+}
+
+</script>

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>君斌生鲜超市</title>
+    <link type="text/css" rel="stylesheet" href="/webjars/amazeui/2.7.2/dist/css/amazeui.min.css">
+    <link type="text/css" rel="stylesheet" href="/webjars/amazeui/2.7.2/dist/css/amazeui.css">
+    <link type="text/css" rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="/assets/css/app.css">
+    <link rel="stylesheet" href="/assets/layui/css/layui.css"  media="all">
+</head>
+<style>
+    ::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+        border-radius: 5px;
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        background: rgba(60, 133, 250, 0.56);
+    }
+
+    .am-selected-btn {
+        width: 235%;
+    }
+    a:hover{
+        text-decoration: none;
+    }
+    .tpl-content-wrapper{
+        min-height:auto;
+    }
+    .left-sidebar{
+        position: fixed;
+    }
+    ::-webkit-scrollbar {/*滚动条整体样式*/
+        width: 4px;     /*高宽分别对应横竖滚动条的尺寸*/
+        height: 4px;
+    }
+    #buybar{
+        background-image: url("/images/15.png");
+    }
+</style>
+<body >
+
+<!--出现具体果蔬信息，购买什么的都在这里面-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-showforvinfo"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog "  style="width: 30%;height: 80%;background-color: #FFFFFF;border: 6px solid #DB5860;border-radius: 30px;position: relative">
+        <div class="am-modal-hd" >
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close style="font-size: 30px">&times;</a>
+        </div>
+        <div style="height:92%;overflow: auto" >
+            <div  style="width: 100%;height: 70%;">
+                <img id="forvimg" src="/images/04.png" width="90%" height="90%">
+            </div>
+
+            <div style="border: 5px solid #DB5860;width: 100%;height: auto;background-color: #DD001B" id="buybar">
+                <div>
+                    <div class="am-g" style="color: whitesmoke">
+                        <div class="col-md-4 " style="margin-top: 1%;font-size: 25px">￥<span id="price" >价格</span>/斤</div>
+                        <div class="col-md-4" style="margin-top: 1%;font-size: 25px"><span  id="whatforv">果蔬</span></div>
+                        <div class="col-md-4 " id="evaluatepoint">评价</div>
+                    </div>
+                    <div class="am-g" style="color: whitesmoke">
+                        <div class="col-md-4 "style="border: 1px solid #d4f8ff;">已经售出:<span id="sellnum">销量</span>斤</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="width: 100%;height: auto;" id="commentarea">
+<!--                评论区-->
+
+            </div>
+        </div>
+            <div style="background: whitesmoke;position:absolute;bottom: 2px;width: 100%;height: auto;border-radius: 30px;position: relative" >
+                <div class="am-g" >
+                    <div class="col-lg-4 "></div>
+                    <div class="col-lg-3 "></div>
+                    <div class="col-lg-5" style="padding-right: 0px">
+                        <div class="am-btn-group">
+                            <button type="button" class="am-btn am-round am-btn-warning" onclick="openshopcar()"> <i class="am-icon-shopping-cart"></i>&nbsp扔购物车</button>
+                            <button type="button" class="am-btn am-round am-btn-danger" onclick="openbuy()"> <i class="am-icon-rmb"></i>&nbsp买!</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+<!--购买弹窗-->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="my-buy"  closeViaDimmer="false" >
+    <div class="am-modal-dialog"  style="width: 40%;height: 55%;background-color: #FFFFFF;border: 6px solid #DB5860;border-radius: 30px;" >
+        <div class="am-modal-hd">
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <div class="am-g">
+                <div class="col-sm-3" style="width: 20%;height: 20%"><img id="buyimg" width="90%" height="90%"></div>
+                <div class="col-sm-9" >
+                    <div class="am-g">
+                        <div class="col-sm-6" id="buyname" style="font-size: 50px"></div>
+                        <div class="col-sm-6" style="font-size: 50px"><span id="buyprice" ></span>/斤</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="am-g" style="margin-top: 5%">
+                <div class="col-sm-2" style=""><button type="button" class="am-btn am-btn-warning" id="btndis" onclick="buycountdisone()">-</button></div>
+                <div class="col-sm-2" style="padding: 0px"> <input type="text"  class="am-form-field " disabled="disabled" id="wangbuycount" value="1"></div>
+                <div class="col-sm-2 " style=""><button type="button" class="am-btn am-btn-warning" id="btnadd" onclick="buycountaddone()">+</button></div>
+                <div style="font-size: 20px;color: #F37B1D">当前库存剩余:<span id="nowstockcount"></span></div>
+            </div>
+            <div style="height: 40%;width: 80%;position: absolute;bottom: 15%;left: 10%">
+                <form>
+                    <div class="am-input-group">
+                        <span class="am-input-group-label"><i class="am-icon-user"></i></span>
+                        <input type="text" id="buyusername" class="am-form-field" placeholder="输入收件人昵称">
+                    </div>
+                    <div class="am-input-group">
+                        <span class="am-input-group-label"><i class="am-icon-phone"></i></span>
+                        <input type="text" id="buyphone" class="am-form-field" placeholder="输入收件人手机号">
+                    </div>
+                    <textarea id="address" class="am-form-field" style="height: 80px" placeholder="输入收件人的收货地址">
+
+                    </textarea>
+                </form>
+                <li class="am-dropdown tpl-dropdown" data-am-dropdown>
+                    <a href="javascript:;" class="am-dropdown-toggle tpl-dropdown-toggle" data-am-dropdown-toggle>
+                        快速选择<i class="am-icon-check"></i>
+                    </a>
+                    <!-- 弹出列表 -->
+                    <ul class="am-dropdown-content tpl-dropdown-content" id="selectexpress" >
+
+                    </ul>
+                </li>
+
+            </div>
+<!--            realbuy()-->
+            <div id="buyorputinshopcar">
+                <div type="button"  onclick="" class="am-btn am-round am-btn-warning" style="position: absolute;bottom: 1%;right: 1%"> <i class="am-icon-rmb"></i>&nbsp放入购物车!</div>
+<!--                <div type="button" id="realbtn" onclick="openinpupay()" class="am-btn am-round am-btn-danger" style="position: absolute;bottom: 1%;right: 1%"> <i class="am-icon-rmb"></i>&nbsp买!</div>-->
+            </div>
+        </div>
+    </div>
+</div>
+<!--购物车弹窗-->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="my-shopcar"  closeViaDimmer="false" >
+    <div class="am-modal-dialog"  style="width: 30%;height: 30%;background-color: #FFFFFF;border: 6px solid #F37B1D;border-radius: 30px;" >
+        <div class="am-modal-hd">
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <div class="am-g">
+                <div class="col-sm-3" style="width: 20%;height: 20%"><img id="shopcarimg" width="90%" height="90%"></div>
+                <div class="col-sm-9" >
+                    <div class="am-g">
+                        <div class="col-sm-6" id="shopcarname" style="font-size: 50px"></div>
+                        <div class="col-sm-6" style="font-size: 50px"><span id="shopcarprice" ></span>/斤</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="am-g" style="margin-top: 5%">
+                <div class="col-sm-2" style=""><button type="button" class="am-btn am-btn-warning" id="shopcardis" onclick="shopcarcountdisone()">-</button></div>
+                <div class="col-sm-2" style="padding: 0px"> <input type="text"  class="am-form-field " disabled="disabled" id="wangshopcarcount" value="1"></div>
+                <div class="col-sm-2 " style=""><button type="button" class="am-btn am-btn-warning" id="shopcaradd" onclick="shopcarcountaddone()">+</button></div>
+                <div style="font-size: 20px;color: #F37B1D">当前库存剩余:<span id="shopcarstockcount"></span></div>
+            </div>
+            <!--            realbuy()-->
+
+                <div type="button" id="shopcarbtn" onclick="putinshopcarlist()" class="am-btn am-round am-btn-warning" style="position: absolute;bottom: 1%;right: 1%"> <i class="am-icon-shopping-cart"></i>&nbsp放入购物车!</div>
+                <!--                <div type="button" id="realbtn" onclick="openinpupay()" class="am-btn am-round am-btn-danger" style="position: absolute;bottom: 1%;right: 1%"> <i class="am-icon-rmb"></i>&nbsp买!</div>-->
+
+        </div>
+    </div>
+</div>
+<!--更换头像模态框-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-upotherheadimg" style="z-index: 12000;"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef">
+        <div class="am-modal-hd">更换头像
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-form-file" style="margin-left: 8px;">
+            <div id="file-list"></div>
+            <button type="button" class="am-btn batchbt"
+                    style="border-radius: 20px !important; width: 150px;">
+                <i class="am-icon-cloud-upload"></i>
+                <span>上传图片</span>
+            </button>
+            <input id="doc-form-file" type="file" accept="image/*" onchange="changImg(event)" >
+        </div>
+        <img alt="选择图片" id="myImg" src="/images/headinit.png" height="100px",width="100px">
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+        </div>
+
+    </div>
+</div>
+<!--普通用户修改密码弹窗-->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="doc-uppassword" >
+    <div class="am-modal-dialog" >
+        <div class="am-modal-hd">更新密码
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-user"></i></span>
+                <input type="text" class="am-form-field" placeholder="输入新账户" id="olduser">
+            </div>
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-user"></i></span>
+                <input type="password" class="am-form-field" placeholder="输入老的密码" id="nowpassword">
+            </div>
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-user"></i></span>
+                <input type="password" class="am-form-field" placeholder="输入新的密码" id="newpassword">
+            </div>
+            <button style="margin-top: 2%" type="button" class="am-btn am-btn-default" onclick="realuppasswordanduser()">确定修改密码或(与)账户</button>
+        </div>
+
+    </div>
+</div>
+<!--注册支付密码弹窗-->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="doc-paypassword" >
+    <div class="am-modal-dialog">
+        <div class="am-modal-hd">你还没有支付密码，请务必注册一个
+        </div>
+        <div class="am-modal-bd">
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-lock"></i></span>
+                <input type="password" id="paypassword" class="am-form-field" placeholder="输入你要的支付密码">
+            </div>
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-lock"></i></span>
+                <input type="password" id="againpaypassword" class="am-form-field" placeholder="重复输入你要的支付密码">
+            </div>
+            <button type="button" onclick="changepaypassword()" class="am-btn am-btn-default">确定</button>
+        </div>
+    </div>
+</div>
+<!--充值弹窗-->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="doc-addbalance" >
+    <div class="am-modal-dialog" style="border: 3px solid  #33C5D2;border-radius: 15px;">
+        <div class="am-modal-hd">充值
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <div class="am-g">
+                <div class="col-md-9 ">
+                    <div class="am-input-group" style="border: 1px solid #33C5D2">
+                        <span class="am-input-group-label">$</span>
+                        <input type="text" class="am-form-field" id="needaddbalanceval" placeholder="输要充值的金额">
+                    </div>
+                </div>
+                <div class="col-md-3 ">
+                    <button type="button" class="am-btn am-btn-primary" style="border: 1px solid #33C5D2;width: 100%" onclick="addbalanceinputpaypassword()">充值</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--确认收货弹窗-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-isdone"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef; border-radius: 8px;">
+        <div class="am-modal-hd">是否确认收货
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">确定</span>
+        </div>
+
+    </div>
+</div>
+<!--输入交易密码弹窗-->
+<div class="am-modal am-modal-no-btn" tabindex="-1" id="doc-inpupay">
+    <div class="am-modal-dialog" style="border: 3px solid  #F37B1D;border-radius: 15px;">
+        <div class="am-modal-hd">输入你的支付密码
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <div class="am-input-group">
+                <span class="am-input-group-label"><i class="am-icon-lock"></i></span>
+                <input type="password" id="beforebuyneedinputpassword" class="am-form-field" placeholder="输入你要的支付密码">
+            </div>
+            <div id="inpupaybtn">
+
+            </div>
+        </div>
+    </div>
+</div>
+<!--评论弹窗-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-iscomment"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef; border-radius: 3px;">
+        <div class="am-modal-hd"><span id="commenthead"></span>
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd">
+            <div class="row">
+                <textarea id="comenttext" placeholder="输入你的评论"></textarea>
+            </div>
+            <div class="row">
+                <div id="choiseleave"></div>
+            </div>
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">确定</span>
+        </div>
+
+    </div>
+</div>
+<!--购买提示专用弹窗-->
+<div class="am-modal am-modal-alert" tabindex="-1" id="my-alert">
+    <div class="am-modal-dialog" style="border: 3px solid #F37B1D;border-radius: 15px;">
+        <div class="am-modal-hd" >尊贵的<span id="alerthead"></span ></div>
+        <div class="am-modal-bd">
+            您购买成功
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-confirm>确定</span>
+        </div>
+    </div>
+</div>
+<!--增加快递快捷输入信息弹窗-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-addexpressinfo"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef; border-radius: 3px;">
+        <div class="am-modal-hd">增加
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-user am-icon-fw"></i></span>
+            <input type="text" id="addexpressname"  class="am-form-field" placeholder="输入收货人昵称">
+        </div>
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-phone am-icon-fw"></i></span>
+            <input type="text" id="addexpresstellphone"  class="am-form-field" placeholder="输入收货人电话">
+        </div>
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-map am-icon-fw"></i></span>
+            <input type="text" id="addexpressaddress"  class="am-form-field" placeholder="输入收货人地址">
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+        </div>
+
+    </div>
+</div>
+<!--修改快递快捷输入信息弹窗-->
+<div class="am-modal am-modal-prompt" tabindex="33" id="doc-upexpressinfo"
+     closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 5px solid #b1f5ef; border-radius: 3px;">
+        <div class="am-modal-hd">修改
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-user am-icon-fw"></i></span>
+            <input type="text" id="upexpressname"  class="am-form-field" placeholder="输入收货人昵称">
+        </div>
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-phone am-icon-fw"></i></span>
+            <input type="text" id="upexpressphone"  class="am-form-field" placeholder="输入收货人电话">
+        </div>
+        <div class="am-input-group">
+            <span class="am-input-group-label"><i class="am-icon-map am-icon-fw"></i></span>
+            <input type="text" id="upexpressaddress"  class="am-form-field" placeholder="输入收货人地址">
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-cancel>取消</span>
+            <span class="am-modal-btn" data-am-modal-confirm style="color: brown">提交</span>
+        </div>
+
+    </div>
+</div>
+<!--查看订单信息的快递信息-->
+<div class="am-modal am-modal-alert" tabindex="-1" id="doc-showoredrexpressinfo" closeViaDimmer="false">
+    <div class="am-modal-dialog" style="border: 2px solid #2EBCC9;border-radius: 20px;">
+        <div class="am-modal-hd">订单信息
+            <a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a>
+        </div>
+        <div class="am-modal-bd" style="border-radius: 20px;">
+            <ul>
+                <li id="receiveexpressname">1</li>
+                <li id="receiveexpresstellphone">2</li>
+                <li id="receiveexpressaddress">3</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!--普通提示框-->
+<div class="am-modal am-modal-alert" tabindex="-1" id="generyalert">
+    <div class="am-modal-dialog" style="border: 3px solid #2EBCC9;border-radius: 15px;">
+        <div class="am-modal-bd" id="alertcontent">
+            info
+        </div>
+        <div class="am-modal-footer">
+            <span class="am-modal-btn" data-am-modal-confirm>确定</span>
+        </div>
+    </div>
+</div>
+<div class="am-g tpl-g">
+    <!-- 头部 -->
+    <header  data-am-sticky style="z-index: 1105">
+        <!-- logo -->
+        <div class="am-fl tpl-header-logo" >
+            <a href="javascript:;"><h3 id="headuser">🌠 生鲜超市欢迎您</h3></a>
+        </div>
+        <!-- 右侧内容 -->
+        <div class="tpl-header-fluid">
+            <!-- 侧边切换 -->
+            <div class="am-fl tpl-header-switch-button am-icon-list">
+                    <span>
+
+                </span>
+            </div>
+<!--             搜索 --><div id="searchshopitem">
+
+                        </div>
+            <!-- 其它功能-->
+            <div class="am-fr tpl-header-navbar">
+                <ul>
+                    <!-- 欢迎语 -->
+                    <li class="am-text-sm tpl-header-navbar-welcome">
+                        <a href="javascript:;">欢迎你, <span sec:authentication="name" id="nowname"></span> </a>
+                    </li>
+
+                    <!-- 新提示 -->
+                    <li class="am-dropdown" data-am-dropdown>
+                        <a href="javascript:;" class="am-dropdown-toggle" data-am-dropdown-toggle>
+                            <i class="am-icon-bell"></i>
+                            <span class="am-badge am-badge-warning am-round item-feed-badge" id="systemmessagecount"></span>
+                        </a>
+
+                        <!-- 弹出列表 -->
+                        <ul class="am-dropdown-content tpl-dropdown-content" id="systemmessagecontent">
+
+                        </ul>
+                    </li>
+
+                    <!-- 退出 -->
+                    <li class="am-text-sm">
+                        <a href="javascript:;" id="logout">
+                            <span class="am-icon-sign-out"></span> 退出
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </header>
+    <!-- 风格切换 -->
+    <div class="tpl-skiner">
+        <div class="tpl-skiner-toggle am-icon-cog">
+        </div>
+        <div class="tpl-skiner-content">
+            <div class="tpl-skiner-content-title">
+                选择主题
+            </div>
+            <div class="tpl-skiner-content-bar">
+                <span class="skiner-color skiner-white" data-color="theme-white"></span>
+                <span class="skiner-color skiner-black" data-color="theme-black"></span>
+            </div>
+        </div>
+    </div>
+    <!-- 侧边导航栏 -->
+    <div class="left-sidebar" style="position: fixed">
+        <!-- 用户信息 -->
+        <div class="tpl-sidebar-user-panel">
+            <div class="tpl-user-panel-slide-toggleable" style="margin-left: 60px">
+                <div class="tpl-user-panel-profile-picture" >
+                    <h3><img src="/images/01.png" id="headimg" class=""></h3>
+                </div>
+                <span class="user-panel-logged-in-text" onclick="openupotherheadimg()" style="cursor: pointer;">
+                      <i class="am-icon-circle-o am-text-success tpl-user-panel-status-icon"></i>
+                       更换头像
+                    </span>
+
+            </div>
+        </div>
+
+        <!-- 菜单 -->
+        <ul class="sidebar-nav">
+            <li class="sidebar-nav-heading">Components <span class="sidebar-nav-heading-info"> 附加组件</span></li>
+            <li class="sidebar-nav-link">
+                <a onclick="indexfirst()" id="indexfirst">
+                    <i class="am-icon-home sidebar-nav-link-logo"></i> 首页
+                </a>
+            </li>
+            <li class="sidebar-nav-link">
+                <a onclick="showmanageselfpage()" id="showmanageselfpage">
+                    <i class="am-icon-key sidebar-nav-link-logo"></i>账户管理
+                </a>
+            </li>
+<!--            <li class="sidebar-nav-link">-->
+<!--                <a href="calendar.html">-->
+<!--                    <i class="am-icon-calendar sidebar-nav-link-logo"></i> 日历-->
+<!--                </a>-->
+<!--            </li>-->
+            <li class="sidebar-nav-link">
+                <a onclick="showallitempage()" id="showallitempage">
+                    <i class="am-icon-wpforms sidebar-nav-link-logo"></i> 商品列表
+                </a>
+            </li>
+<!--            <li class="sidebar-nav-link">-->
+<!--                <a href="chart.html">-->
+<!--                    <i class="am-icon-bar-chart sidebar-nav-link-logo"></i> 图表-->
+
+<!--                </a>-->
+<!--            </li>-->
+
+            <li class="sidebar-nav-heading">Page<span class="sidebar-nav-heading-info"> 常用页面</span></li>
+            <li class="sidebar-nav-link">
+                <a href="javascript:;" class="sidebar-nav-sub-title" id="orderpage">
+                    <i class="am-icon-table sidebar-nav-link-logo"></i> 订单
+                    <span class="am-icon-chevron-down am-fr am-margin-right-sm sidebar-nav-sub-ico"></span>
+                </a>
+                <ul class="sidebar-nav sidebar-nav-sub">
+                    <li class="sidebar-nav-link">
+                        <a onclick="showallorderpage()" id="allorderpage">
+                            <span class="am-icon-angle-right sidebar-nav-link-logo"></span> 所有订单
+                        </a>
+                    </li>
+
+                    <li class="sidebar-nav-link">
+                        <a onclick="showshopcarpage()" id="showshopcarpage">
+                            <span class="am-icon-angle-right sidebar-nav-link-logo"></span> 购物车
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-nav-link">
+                <a onclick="editaddresspage()" id="editaddress">
+                    <i class="am-icon-clone sidebar-nav-link-logo"></i> 发货信息管理
+                </a>
+            </li>
+            <li class="sidebar-nav-link">
+                <a onclick="lookAllSystemMessages()">
+                    <i class="am-icon-list sidebar-nav-link-logo"></i> 查看系统信息列表
+                </a>
+            </li>
+<!--            <li class="sidebar-nav-link">-->
+<!--                <a href="404.html">-->
+<!--                    <i class="am-icon-tv sidebar-nav-link-logo"></i> 404错误-->
+<!--                </a>-->
+<!--            </li>-->
+
+        </ul>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="tpl-content-wrapper" id="contentarea">
+
+
+
+
+    </div>
+</div>
+</div>
+
+
+<script src="/assets/layui/layui.js" charset="utf-8"></script>
+<script type="text/javascript" src="/webjars/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript" src="/webjars/echarts/4.0.4/dist/echarts.js"></script>
+<script type="text/javascript" src="/webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/webjars/amazeui/2.7.2/dist/js/amazeui.js"></script>
+<script type="text/javascript" src="/assets/js/dataTables.responsive.min.js"></script>
+<script type="text/javascript" src="/assets/js/app.js"></script>
+<script type="text/javascript" src="/assets/js/theme.js"></script>
+<script type="text/javascript">
+    var header = $("meta[name='_csrf_header']").attr("content");
+    var token = $("meta[name='_csrf']").attr("content");
+    var imgname;
+    var paypassword
+
+    //查询出系统信息
+    $(function () {
+        selsystemallmessages()
+    })
+    setInterval( function () {
+        selsystemallmessages()
+    },20000);
+    function selsystemallmessages(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/selpartmessages",
+            dataType: "json",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (data) {
+                $('#systemmessagecount').html(data.length)
+                if(data.length==0){
+                    $('#systemmessagecontent').html("暂无信息")
+                }else{
+                    var str=""
+                    for(var i=0;i<data.length;i++){
+
+                        str+="      <li class=\"tpl-dropdown-menu-notifications\" >\n" +
+                            "                                        <a class=\"tpl-dropdown-menu-notifications-item am-cf\" >\n" +
+                            "                                            <div class=\"tpl-dropdown-menu-notifications-title\" style='color: "+data[i].color+"'>\n" +
+                            "                                                <i class="+data[i].icon+"></i>\n" +
+                            "                                                <span> "+data[i].content+"</span>\n" +
+                            "                                            </div>\n" +
+                            "<br/>\n"+
+                            "                                            <div class=\"tpl-dropdown-menu-notifications-title\" style='color: "+data[i].color+"'>\n" +
+                            "                                                "+data[i].sendtime+"\n" +
+                            "                                            </div>\n" +
+                            "                                        </a>\n" +
+                            "                                    </li>"
+                    }
+                    str+=" <li class=\"tpl-dropdown-menu-messages\">\n" +
+                        "                                    <a onclick='lookAllSystemMessages()' class=\"tpl-dropdown-menu-messages-item am-cf\">\n" +
+                        "                                        <i class=\"am-icon-circle-o\"></i> 进入列表…\n" +
+                        "                                    </a>\n" +
+                        "                                </li>"
+                    $('#systemmessagecontent').html(str)
+                }
+            }
+        })
+    }
+
+$(function () {
+    ishavepass()
+})
+    //查询出当前用户的支付密码
+    function  ishavepass(){
+
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/other/selthisuserpassword",
+        data: {
+            nowuser:$('#nowname').html()
+        },
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            paypassword=data.paypassword
+            if(paypassword==null || paypassword==""){
+                $('#doc-paypassword').modal({
+                    relatedTarget: this,
+                    closeOnConfirm: false,
+                    closeViaDimmer:false,
+                    })
+            }
+        }})
+
+    }
+    //注册支付密码
+    function changepaypassword(){
+        if($('#paypassword').val()==null || $('#paypassword').val()==''){
+            $('#alertcontent').html("注册的支付密码不能为空")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+        }})}
+        else if($('#againpaypassword').val()==null || $('#againpaypassword').val()==''){
+            $('#alertcontent').html("重复输入不能为空")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }
+        else if($('#paypassword').val()!==$('#againpaypassword').val()){
+            $('#alertcontent').html("两个密码不一致")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }
+        else {
+            $.ajax({
+                type: "POST",                           //通过POST方式上传请求
+                url: "/other/uppaypassword",
+                data: {
+                    paypassword: $('#paypassword').val(),
+                    user:$('#nowname').html()
+                },
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader(header, token);
+                }, success: function (data) {
+                    $('#alertcontent').html("注册成功")
+                    $('#generyalert').modal({
+                        relatedTarget: this,
+                        closeViaDimmer:false,
+                        onConfirm: function (e) {
+                        }})
+                    ishavepass()
+                    $("#doc-paypassword").modal('close');
+                }
+            })
+        }
+
+
+    }
+    //登出
+    $('#logout').click(function logout() {
+
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/end/logout",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (errms) {
+                window.location.href = '/'
+            }
+        })
+    })
+
+    //出现更新头像的模态框
+    function openupotherheadimg(){
+        $('#doc-upotherheadimg').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+                //图片上传ajax
+                var s = $('#doc-form-file')[0].files[0];
+                var formData = new FormData();
+                formData.append("file_data", s);
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/other/getfileup",
+                    dataType: "text",
+                    processData: false,
+                    contentType: false,
+                    data: formData,
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (Data) {
+                        console.log(imgname)
+                        // $("#doc-upadminheadimg").modal('close');
+                        // $("#myImg").attr("src","/images/headinit.png");
+                        $('#headimg').attr("src","../other/getImg")
+                    }})
+            },onCancel: function (e) {
+            }})
+    }
+    //得到打算上传图片的名字
+    $('#doc-form-file').on('change', function () {
+        var fileNames = '';
+        $.each(this.files, function () {
+            imgname = this.name
+            fileNames += '<span class="" style="color: #7c7c7c;">' + this.name + '</span> ';
+        });
+        $('#file-list').html(fileNames);
+    });
+    //得到打算上传的图片(回显)
+    function changImg(e){
+        for (var i = 0; i < e.target.files.length; i++) {
+            var file = e.target.files.item(i);
+            if (!(/^image\/.*$/i.test(file.type))) {
+                continue; //不是图片 就跳出这一次循环
+            }
+            //实例化FileReader API
+            var freader = new FileReader();
+            freader.readAsDataURL(file);
+            freader.onload = function(e) {
+                if(imgname !== null ){
+                    $("#myImg").attr("src",e.target.result);
+                }else{
+                    getnowheadimg()
+                }
+            }
+        }
+    }
+    //获得当前用户的头像
+    $(function () {
+        getnowheadimg()
+    })
+    function getnowheadimg(){
+
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/booleanhasheadimg",
+            dataType: "text",
+            data: {},
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            },
+            success: function (Data) {
+                if(Data == 'yes'){
+                    $('#headimg').attr("src","../other/getImg")
+                    $('#myImg').attr("src","../other/getImg")
+                }else {
+                    // $('#headimg').attr("src","../admin/getImg")
+                    // $('#myImg').attr("src","../admin/getImg")
+                    $('#headimg').attr("src","/images/headinit.png")
+                    $('#myImg').attr("src","/images/headinit.png")
+                }
+
+            }})
+    }
+
+    $(function () {
+        indexfirst()
+    })
+    var clicktype
+    //加载出Other的首页
+    function indexfirst() {
+        $('#contentarea').load("/other/index")
+        $('#indexfirst').addClass("active")
+        $('#showallitempage').removeClass("active")
+        $('#showmanageselfpage').removeClass("active")
+        $('#orderpage').removeClass("active")
+        $('#allorderpage').removeClass("active")
+        $('#editaddress').removeClass("active")
+        $('#searchshopitem').html("")
+    }
+    //加载出所有商品界面
+    function showallitempage() {
+        $('#contentarea').load("/other/showallitem")
+        $('#indexfirst').removeClass("active")
+        $('#showmanageselfpage').removeClass("active")
+        $('#showallitempage').addClass("active")
+        $('#orderpage').removeClass("active")
+        $('#allorderpage').removeClass("active")
+        $('#editaddress').removeClass("active")
+        //加载出搜索样式
+        $('#searchshopitem').html(" <div class=\"am-fl tpl-header-search\" >\n" +
+            "                                    <form class=\"tpl-header-search-form\" action=\"javascript:;\">\n" +
+            "                                        <button type=\"button\" class=\"tpl-header-search-btn am-icon-search\" onclick='showallshopitem($(\"#findshopitemname\").val(),clicktype)'></button>\n" +
+            "                                        <input id=\"findshopitemname\" class=\"tpl-header-search-box\" type=\"text\" placeholder=\"搜索内容...\">\n" +
+            "                                    </form>\n" +
+            "                                </div>")
+    }
+    //加载出管理自己以及查看自己某些信息界面
+    function showmanageselfpage() {
+        $('#contentarea').load("/other/showmanageself")
+        $('#showmanageselfpage').addClass("active")
+        $('#showallitempage').removeClass("active")
+        $('#indexfirst').removeClass("active")
+        $('#orderpage').removeClass("active")
+        $('#allorderpage').removeClass("active")
+        $('#editaddress').removeClass("active")
+        $('#searchshopitem').html("")
+    }
+    //展现所有订单信息界面
+    function showallorderpage() {
+        $('#contentarea').load("/other/showallorderpage")
+        $('#orderpage').addClass("active")
+        $('#allorderpage').addClass("active")
+        $('#showmanageselfpage').removeClass("active")
+        $('#showallitempage').removeClass("active")
+        $('#indexfirst').removeClass("active")
+        $('#editaddress').removeClass("active")
+        $('#searchshopitem').html("")
+    }
+    //加载出编辑快递信息界面
+    function editaddresspage() {
+        $('#contentarea').load("/other/editaddresspage")
+        $('#editaddress').addClass("active")
+        $('#orderpage').removeClass("active")
+        $('#allorderpage').removeClass("active")
+        $('#showmanageselfpage').removeClass("active")
+        $('#showallitempage').removeClass("active")
+        $('#indexfirst').removeClass("active")
+        $('#searchshopitem').html("")
+    }
+    //展现购物车页
+    function showshopcarpage() {
+        $('#contentarea').load("/other/showshopcarpage")
+        $('#searchshopitem').html("")
+    }
+    //展现查看所有系统信息列表页
+    function lookAllSystemMessages() {
+        $('#contentarea').load("/other/showsystemmessages")
+        $('#searchshopitem').html("")
+    }
+</script>
+</body>
+</html>

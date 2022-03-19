@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bysj.qiu.dao.AdminManagerShopItemDao">
+
+<!--    查询出所有的商品果蔬列表-->
+    <select id="selAllShopItem" resultType="com.bysj.qiu.pojo.ShopItem">
+        select * from tb_shop_item
+    </select>
+<!--    查询出所有商品的类别作为下拉列表-->
+    <select id="selAllShopItemType" resultType="com.bysj.qiu.pojo.ShopItemType">
+        select * from tb_shopitem_type
+    </select>
+<!--    查询是否已经有这个商品-->
+    <select id="selIsHaveShopInfo" resultType="com.bysj.qiu.pojo.ShopItem">
+         select * from tb_shop_item where name=#{name}
+    </select>
+<!--    修改商品图片(及其他信息)-->
+    <update id="upShopItemImg">
+        update tb_shop_item set forvpicture=#{forvpicture},name=#{name},price=#{price},simpleintroduction=#{simpleintroduction},type=#{type},stockcount=#{stockcount} where id=#{id}
+    </update>
+<!--    增加商品信息-->
+    <insert id="addShopItemInfo">
+        insert into tb_shop_item(forvpicture, name, price, simpleintroduction, type, stockcount) values(#{forvpicture},#{name},#{price},#{simpleintroduction},#{type},#{stockcount})
+    </insert>
+<!--    删除商品信息-->
+    <delete id="delShopItem">
+        delete from tb_shop_item where id=#{id}
+    </delete>
+</mapper>

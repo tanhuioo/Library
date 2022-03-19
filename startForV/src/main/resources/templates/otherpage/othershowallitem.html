@@ -1,0 +1,554 @@
+
+<div class="container-fluid am-cf">
+    <div class="row am-animation-slide-top">
+        <div class="am-u-sm-12 am-u-md-12 am-u-lg-9">
+            <div class="page-header-heading"><span class="am-icon-home sidebar-nav-link-logo"></span>商品列表</div>
+            <p class="page-header-description">展示所有的果蔬</p>
+            <p class="page-header-description">购买你所最爱的</p>
+
+        </div>
+    </div>
+</div>
+<!--<div id="test9"></div>-->
+<div class="row-content am-cf">
+    <div class="widget am-cf widget-body-lg am-animation-slide-left">
+        <div class="container-fluid am-cf">
+            <div id="selecttypedoc" >
+                <div class="am-dropdown" id="selecttype">
+                    <button class="am-btn am-btn-danger am-dropdown-toggle">选择类别<span class="am-icon-caret-down"></span></button>
+                    <div class="am-dropdown-content" >
+                        <div class="container">
+                            <div class="row" id="selecttypebotton">
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="am-g" id="showforv">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+
+    //加载出所有类别
+    $.ajax({
+        type: "POST",                           //通过POST方式上传请求
+        url: "/other/showallshopitemtype",
+        dataType: "json",
+        data: {},
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader(header, token);
+        }, success: function (data) {
+            var str=""
+            for (var i=0;i<data.length;i++){
+                str+=" <div class=\"col-md-3\" onclick='clickandchangeitem(\""+data[i].shopitemtype+"\")' style=\"margin-bottom: 10px\"><button type=\"button\" class=\"am-btn am-btn-primary\">"+data[i].shopitemtype+"</button></div>"
+            }
+            str+="<div class=\"col-md-3\" onclick='showallshopitem()' style=\"margin-bottom: 10px\"><button type=\"button\" class=\"am-btn am-btn-primary\">全部</button></div>"
+            $('#selecttypebotton').html(str)
+        }
+    })
+
+    //点击后加载指定类别
+    function clickandchangeitem(type){
+        clicktype=type
+        showallshopitem($("#findshopitemname").val(),type)
+    }
+    //掉下选择类别框
+    $(function() {
+        $('#selecttype').dropdown({justify: '#am-dropdown'});
+    });
+    var buycount=parseInt($('#wangbuycount').val())
+    var choiseforvcount
+    var choisestockcount
+    var choiseforv
+    var otherbuycount
+    var choiseimg
+    //初始化
+    function init() {
+        $('#beforebuyneedinputpassword').val("")
+        $('#wangbuycount').val(1)
+        buycount=1
+        showThisUserBalance()
+        // showallshopitem()
+        if(buycount>choisestockcount){
+            $('#realbtn').html("没那么多库存")
+            buycount=0
+            $('#wangbuycount').val(0)
+            $('#realbtn').attr("disabled","disabled")
+            $('#btndis').attr("disabled","disabled")
+            $('#btnadd').attr("disabled","disabled")
+        }else{
+            buycount=1
+            $('#wangbuycount').val(1)
+            $('#realbtn').html("共:￥"+buycount*$("#buyprice").html()+"元")
+            $('#realbtn').removeAttr("disabled","disabled")
+            $('#btndis').removeAttr("disabled","disabled")
+            $('#btnadd').removeAttr("disabled","disabled")
+        }
+    }
+    var mybalance
+    var allbuycount
+    var oneprice
+    //获取当前余额与购买次数自加载
+    $(function () {
+        showThisUserBalance()
+    })
+    function showThisUserBalance(){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/getuserbuyinfo",
+            data: {
+                buyuser:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                console.log(data)
+                allbuycount=data.buynum
+                mybalance=data.balance
+            }
+        })
+    }
+
+    //展现所有果蔬自加载
+    $(function () {
+        showallshopitem($("#findshopitemname").val(),"")
+    })
+    //展现所有果蔬
+    function showallshopitem(name,type){
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/showallshopitem",
+            data: {
+                name:name,
+                type:type
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=''
+                for (var i=0;i<data.length;i++){
+                    str+=" <div class=\"col-sm-6 col-md-4 col-lg-3  \"  onclick='lookrealforvinfo("+data[i].id+","+data[i].sellcount+" ,"+
+                                                                                         "\""+data[i].name+"\"," +
+                                                                                          "\""+data[i].price+"\"," +
+                                                                                             +data[i].evaluatepoint+"," +
+                                                                                             +data[i].stockcount+"," +
+                                                                                             "\""+data[i].forvpicture+"\")' " +
+                        "style=\"height: 380px;border: 1px solid #DBECF9;\">\n" +
+                        "                    <div class=\"am-g \">\n" +
+                        "                        <div class=\"col-sm-9 col-lg-9 \" style=\"height: 300px;border: 1px solid #DBECF9;\n" +
+                        "                        margin-left: 12%;\n" +
+                        "                        margin-right: 11%;\n" +
+                        "                        margin-top: 5%;\n" +
+                        "                        padding: 0px\"\n" +
+                        "                        ><img src=\"../other/getsendrImg.action?nowforvimg="+data[i].forvpicture+"\" width=\"100%\" height=\"100%\"></div>\n" +
+                        "                        <div style=\"margin-left: 12%;\">\n" +
+                        "                            <div style='float: right;margin-right: 12%'>评语:"+data[i].simpleintroduction+"</div>\n" +
+                        "                            <div style='font-size: 18px'>名称:"+data[i].name+"</div>\n" +
+                        "                            <div style='font-size: 20px'>每斤单价价格￥: "+data[i].price+"</div>\n" +
+                        "                        </div>\n" +
+                        "                    </div>\n" +
+                        "                </div>"
+                }
+                $('#showforv').html(str)
+            }
+        })
+    }
+    //出现果蔬具体信息模态框
+    function lookrealforvinfo(id,sellcount,name,price,point,stockcount,img) {
+        init()
+        showcommenttoarea(name)
+        choiseimg=img
+        console.log("当前的销售"+sellcount)
+        choiseforvcount=sellcount
+        choisestockcount=stockcount
+        choiseforv=name
+        oneprice=price
+        $('#doc-showforvinfo').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+
+            }
+           })
+        $('#whatforv').html(name)
+        $('#buyname').html(name)
+        $('#shopcarname').html(name)
+        $('#price').html(price)
+        $('#shopcarprice').html(price)
+        $('#buyprice').html(price)
+        $('#forvimg').attr("src","../other/getsendrImg.action?nowforvimg="+img+"")
+        $('#buyimg').attr("src","../other/getsendrImg.action?nowforvimg="+img+"")
+        $('#shopcarimg').attr("src","../other/getsendrImg.action?nowforvimg="+img+"")
+        $('#sellnum').html(sellcount)
+        layui.use(['rate'], function(){
+            var rate = layui.rate;
+            //只读
+            rate.render({
+                elem: '#evaluatepoint'
+                ,value: point
+                ,half: true
+                ,readonly: true
+            });
+        })
+    }
+    //打开购物车弹窗
+    function openshopcar() {
+        $('#shopcarstockcount').html(choisestockcount)
+        shopcarcount=1
+        $('#wangshopcarcount').val(shopcarcount)
+        $('#my-shopcar').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+            }})
+    }
+//    打开购买弹窗
+    function openbuy() {
+        $('#address').val("")
+        $("#buyusername").val("")
+        $("#buyphone").val("")
+        init()
+        otherbuycount=1
+        if(mybalance < $("#buyprice").html()){
+            $('#realbtn').html("余额不足")
+            $('#realbtn').attr("disabled","disabled")
+        }else{
+            $('#realbtn').html("共:￥"+buycount*$("#buyprice").html()+"元")
+        }
+        $('#nowstockcount').html(choisestockcount)
+        $('#buyorputinshopcar').html("<div type=\"button\" id=\"realbtn\" onclick=\"openinpupay()\" class=\"am-btn am-round am-btn-danger\" style=\"position: absolute;bottom: 1%;right: 1%\"> <i class=\"am-icon-rmb\"></i>&nbsp买!</div>")
+        $('#my-buy').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer:false,
+            onConfirm: function (e) {
+            }})
+    }
+    //购买前出现支付密码弹窗
+    function openinpupay() {
+        if($("#buyusername").val()==null || $("#buyusername").val()=="" ){
+            $('#alertcontent').html("必须要输入收货人名字")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if($("#buyphone").val()==null || $("#buyphone").val()=="" ){
+            $('#alertcontent').html("必须要输入收货人手机")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if($('#address').val()==null || $('#address').val==""){
+            $('#alertcontent').html("必须要输入收货地址")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }
+        else{
+        $('#inpupaybtn').html(" <button type=\"button\" onclick=\"realbuy()\" class=\"am-btn am-btn-default\">确定</button>")
+        $('#doc-inpupay').modal({
+            relatedTarget: this,
+            closeOnConfirm: false,
+            closeViaDimmer:false,
+            })
+        }
+    }
+   //点击真正的购买按钮
+    function realbuy() {
+
+        if($('#beforebuyneedinputpassword').val()==null || $('#beforebuyneedinputpassword').val()==''){
+            $('#alertcontent').html("必须输入支付密码")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else if(paypassword !==$('#beforebuyneedinputpassword').val()){
+            $('#alertcontent').html("支付密码错误")
+            $('#generyalert').modal({
+                relatedTarget: this,
+                closeViaDimmer:false,
+                onConfirm: function (e) {
+                }})
+        }else{
+        init()
+        mybalance= mybalance-otherbuycount*$("#buyprice").html()
+        allbuycount=allbuycount+1
+        choiseforvcount=choiseforvcount+otherbuycount
+        choisestockcount=choisestockcount-otherbuycount
+
+        //更新水果或蔬菜的总购买量
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/upforvcount",
+            data: {
+                sellcount:choiseforvcount,
+                stockcount:choisestockcount,
+                name:choiseforv
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                showallshopitem()
+                    init()
+            }
+        })
+        //更新余额
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/other/upbalance",
+            data: {
+                balacne: mybalance,
+                buyuser:$('#nowname').html(),
+                buynum:allbuycount
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                //存放到账单中
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/other/addbillinfo",
+                    data: {
+                      user:$('#nowname').html(),
+                      flowmoney: otherbuycount*$("#buyprice").html(),
+                      whatdoing: "购买了"+$("#whatforv").html()+otherbuycount+"斤",
+                      isbuyoradd:0
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    }, success: function (data) {
+                        init()
+                    }})
+                //存放到总订单
+
+                $.ajax({
+                    type: "POST",                           //通过POST方式上传请求
+                    url: "/other/addbuyinfo",
+                    data: {
+                        buyshopitemname: $("#whatforv").html(),
+                        buyer:$('#nowname').html(),
+                        tellphone:$('#buyphone').val(),
+                        transfername:$('#buyusername').val(),
+                        address:$("#address").val() ,
+                        consume: otherbuycount*$("#buyprice").html(),
+                        onecount:otherbuycount,
+                        shopimg:choiseimg
+                    },
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader(header, token);
+                    }, success: function (data) {
+                            init()
+                    }}
+                    )
+                $('#alerthead').html($('#nowname').html())
+                $('#my-alert').modal({
+                    relatedTarget: this,
+                    closeOnConfirm: false,
+                    closeViaDimmer:false,
+                    onConfirm: function (e) {
+                        $("#my-alert").modal('close');
+                        $("#my-buy").modal('close');
+                        $("#doc-showforvinfo").modal('close');
+                        $("#doc-inpupay").modal('close');
+                    }})
+                $('#balance').html(mybalance)
+            }
+        })
+    }
+    }
+    //点击直接放入购物车
+    function putinshopcarlist(){
+       var needmoney=oneprice*shopcarcount
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othershopcar/addshoptoshopcar",
+            data: {
+                shopcarname:choiseforv ,
+                shopcarprices:oneprice,
+                shopcarcount:shopcarcount,
+                needmoney:needmoney,
+                shopcarimg:choiseimg,
+                putter:$('#nowname').html(),
+                stockcount:choisestockcount,
+                sellcount:choiseforvcount
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                $('#alertcontent').html("已添加进购物车")
+                $('#generyalert').modal({
+                    relatedTarget: this,
+                    closeOnConfirm: false,
+                    closeViaDimmer:false,
+                    onConfirm: function (e) {
+                        $('#my-shopcar').modal('close')
+                        $('#generyalert').modal('close')
+                        $('#doc-showforvinfo').modal('close')
+                    }
+                })
+            }
+        })
+    }
+// 购买弹窗数量选择+1
+    function buycountaddone() {
+        if(mybalance > buycount*$("#buyprice").html()){
+            buycount= buycount +1
+            otherbuycount=buycount
+            console.log("otherbuycount"+otherbuycount)
+            $('#wangbuycount').val(buycount)
+            $('#realbtn').html("共:￥"+buycount*$("#buyprice").html()+"元")
+            $('#btndis').removeAttr("disabled")
+            $('#realbtn').removeAttr("disabled","disabled")
+        }
+
+        if(buycount<=choisestockcount){
+            $('#realbtn').html("共:￥"+buycount*$("#buyprice").html()+"元")
+            $('#realbtn').removeAttr("disabled","disabled")
+        }
+        if(mybalance < buycount*$("#buyprice").html()){
+            $('#btnadd').attr("disabled","disabled")
+            $('#realbtn').html("余额不足")
+            $('#realbtn').attr("disabled","disabled")
+        }
+        if(buycount>choisestockcount){
+            $('#realbtn').html("没那么多库存")
+            $('#realbtn').attr("disabled","disabled")
+        }
+    }
+    // 购买弹窗数量选择-1
+    function buycountdisone() {
+        if(buycount>0){
+            buycount= buycount -1
+            otherbuycount=buycount
+            $('#btnadd').removeAttr("disabled","disabled")
+            $('#realbtn').removeAttr("disabled","disabled")
+            $('#realbtn').html("共:￥"+buycount*$("#buyprice").html()+"元")
+        }
+        if(buycount<=0){
+            $('#btndis').attr("disabled","disabled")
+            $('#realbtn').attr("disabled","disabled")
+            $('#realbtn').html("必须要买一个")
+        }
+        $('#wangbuycount').val(buycount)
+    }
+    //购物车数量+1
+    var shopcarcount
+    function shopcarcountaddone(){
+        shopcarcount = parseInt($('#wangshopcarcount').val())+1
+        $('#wangshopcarcount').val(shopcarcount)
+        if(shopcarcount>=0){
+            $('#shopcarbtn').removeAttr("disabled","disabled")
+            $('#shopcardis').removeAttr("disabled","disabled")
+        }
+        if(shopcarcount>choisestockcount){
+            $('#shopcarbtn').attr("disabled","disabled")
+            $('#shopcaradd').attr("disabled","disabled")
+        }
+
+    }
+    //购物车数量-1
+    function shopcarcountdisone(){
+        shopcarcount = parseInt($('#wangshopcarcount').val())-1
+        $('#wangshopcarcount').val(shopcarcount)
+        if(shopcarcount<=choisestockcount){
+            $('#shopcarbtn').removeAttr("disabled","disabled")
+            $('#shopcaradd').removeAttr("disabled","disabled")
+        }
+        if(shopcarcount<=0){
+            $('#shopcarbtn').attr("disabled","disabled")
+            $('#shopcardis').attr("disabled","disabled")
+        }
+    }
+//快速选择地址
+    $(function () {
+        showexpressinfo()
+    })
+    function showexpressinfo() {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/otherexpress/selallexpressinfo",
+            data: {
+                buyer:$('#nowname').html()
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var choise=""
+                for(var i=0;i<data.length;i++){
+                    choise +="<li class=\"tpl-dropdown-menu-messages\" onclick='addininputexpressinfo(" +
+                        "\"" + data[i].tellphone + "\"," +
+                        "\"" + data[i].address + "\"," +
+                        "\"" + data[i].transfername + "\")'>\n" +
+                        "                                <a href=\"javascript:;\" class=\"am-cf\">\n" +
+                        "                                    <div class=\"menu-messages-content\" style='text-align: center;color: #878787'>\n" +
+                        "                                        <div class=\"menu-messages-content-title\">\n" +
+                        "                                            <span id=\"transfername\">昵称：" + data[i].transfername + "</span>\n" +
+                        "                                        </div>\n" +
+                        "                                        <div class=\"am-text-truncate\" id=\"transaddress\">地址：" + data[i].address + "</div>\n" +
+                        "                                        <div id=\"tellphone\">电话：" + data[i].tellphone + "</div>\n" +
+                        "                                    </div>\n" +
+                        "                                </a>\n" +
+                        "                            </li>"
+                }
+                $('#selectexpress').html(choise)
+            }
+        })
+    }
+    //点击选择地址
+    function addininputexpressinfo(tellphone,address,transfername) {
+        $('#buyphone').val(tellphone)
+        $('#buyusername').val(transfername)
+        $('#address').val(address)
+    }
+    //展现出评论
+    function showcommenttoarea(shopname) {
+        $.ajax({
+            type: "POST",                           //通过POST方式上传请求
+            url: "/othercomment/selcommenttoarea",
+            data: {
+                shopname:shopname
+            },
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(header, token);
+            }, success: function (data) {
+                var str=""
+                for(var i=0;i<data.length;i++){
+                    str+="<article class=\"am-comment am-comment-warning\" style=\"margin: 1%\">\n" +
+                        "                    <a href=\"#link-to-user-home\">\n" +
+                        "                        <img src=\"../other/getotherheadImg.action?otherheadimg=" + data[i].buyerheadimg+ "\"  class=\"am-comment-avatar\" width=\"48\" height=\"48\"/>\n" +
+                        "                    </a>\n" +
+                        "                    <div class=\"am-comment-main\" >\n" +
+                        "                        <header class=\"am-comment-hd\" >\n" +
+                        "                            <!--<h3 class=\"am-comment-title\">评论标题</h3>-->\n" +
+                        "                            <div class=\"am-comment-meta\" >\n" +
+                        "                                <a href=\"#link-to-user\" class=\"am-comment-author\" >"+data[i].buyer+"</a>\n" +
+                        "                                评论于 <time>"+data[i].commenttime+"</time>\n" +
+                        "                            </div>\n" +
+                        "                        </header>\n" +
+                        "                        <div class=\"am-comment-bd\" style=\"text-align: left;font-size: 20px\">\n" +
+                        "                           <span>"+data[i].commenttext+"</span>\n" +
+                        // "                            <div style=\"margin-top: 1%;border-left: 5px solid black;font-family: 楷体\">某人回复了我:<span>content</span></div>\n" +
+                        "                        </div>\n" +
+                        "                    </div>\n" +
+                        "                </article>"
+
+                }
+                $('#commentarea').html(str)
+            }
+        })
+
+}
+
+</script>

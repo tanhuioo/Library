@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bysj.qiu.dao.ShowEachartsDao">
+<!--    显示销量前六的果蔬-->
+    <select id="selTopFirstForVCharts" resultType="com.bysj.qiu.pojo.ShopItem">
+        select id,name,sellcount from tb_shop_item order by sellcount DESC LIMIT 0,6
+    </select>
+<!--上一个月的总消费-->
+    <select id="selLastMonthConsume" resultType="java.math.BigDecimal">
+        select SUM(consume) sumconsume  from tb_shop_order where DATE_FORMAT(buytime,'%Y%m')=date_format(DATE_SUB(curdate(), INTERVAL 1 MONTH),'%Y%m')
+    </select>
+<!--    得到五个月的总消费-->
+    <select id="getFiveMonthConsume" resultType="java.math.BigDecimal">
+        SELECT sum(consume) sumconsume  FROM tb_shop_order where buytime >DATE_SUB(CURDATE(), INTERVAL 5 MONTH)
+    </select>
+<!--得到这五个月分别的消费趋势-->
+    <select id="selFiveMonthConsume" resultType="com.bysj.qiu.pojo.Statistics">
+        SELECT SUM(consume) sumconsume ,DATE_FORMAT(buytime,"%y年%m月") fivemonth FROM tb_shop_order  where buytime >DATE_SUB(CURDATE(), INTERVAL 5 MONTH)  GROUP BY DATE_FORMAT(buytime,"%y%m")
+    </select>
+
+
+
+</mapper>

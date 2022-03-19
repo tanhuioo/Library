@@ -1,0 +1,108 @@
+.container{
+    width: 100%;
+}
+#logincontinue{
+    height: 80%;
+    width: 80%;
+    background:url("/images/13.png") no-repeat;
+    background-size:100% ;
+    border-radius: 40px; /*这句就是重点，让边框变为圆角*/
+    border: 10px solid #B3CCD1; /*让边框变为1px宽度，直线，#CCC颜色*/
+    /*background-color: cornflowerblue;*/
+    /*filter:alpha(Opacity=65);-moz-opacity:0.65;opacity: 0.65;*/
+}
+#logininput{
+
+    height:40%;
+    width: 60%;
+    margin-left:10%;
+    margin-top:20%;
+    border-radius: 60px; /*这句就是重点，让边框变为圆角*/
+    border: 5px solid #C7D8DF;
+    /*background:url("/images/14.png") no-repeat;*/
+
+}
+#registcontinue{
+    height: 80%;
+    width: 80%;
+    background:url("/images/14.png") no-repeat;
+    background-size:100% ;
+    border-radius: 40px; /*这句就是重点，让边框变为圆角*/
+    border: 10px solid #141414; /*让边框变为1px宽度，直线，#CCC颜色*/
+    /*background-color: cornflowerblue;*/
+    /*filter:alpha(Opacity=65);-moz-opacity:0.65;opacity: 0.65;*/
+}
+#reigistinput{
+   width: 70%;
+    margin-bottom:6%;
+    margin-top: 20%;
+    margin-left: 20%;
+    border-radius: 60px; /*这句就是重点，让边框变为圆角*/
+    border: 5px solid #585A58;
+
+}
+/*图片轮播的总背景*/
+#imgrun{
+    position: absolute;
+    z-index: -2000;
+    background: url("/images/04.png");
+    padding: 0px;
+}
+/*图片轮播总高度*/
+#imgrunchange{
+    height:940px;
+}
+/*图片轮播的图片在字下面*/
+#imgrunimg1{
+    position: absolute;
+    z-index: -1000;
+}
+#imgrunimg2{
+    position: absolute;
+    z-index: -1000;
+}
+#imgrunimg3{
+    position: absolute;
+    z-index: -1000;
+}
+#imgrunimg4{
+    position: absolute;
+    z-index: -1000;
+}
+/*所有行都是padding为0*/
+.col-md-12{
+    padding: 0px;
+}
+/*页面未加载前*/
+#loading{
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    position: fixed;
+    top:0;
+    left: 0;
+    z-index: 9999;
+}
+#loading >i{
+    width: 200px;
+    height: 200px;
+    position: absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right: 0;
+    margin: auto;
+    background:url("/images/09.gif") no-repeat;
+}
+/*页脚*/
+#floor{
+    background: url("/images/11.png");
+    padding:0px;
+    width:100%;
+    height: 127px;
+    margin-top: 600px;
+    position: absolute;
+    z-index: 3000
+}
+
+
